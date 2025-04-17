@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"google.golang.org/grpc"
@@ -37,4 +38,20 @@ func (c Client) GetServerClient() pb.AppserverServiceClient {
 
 func (c Client) GetChannelClient() pb.ChannelServiceClient {
 	return pb.NewChannelServiceClient(c.Conn)
+}
+
+func setGRPCConnection(clientConn *grpc.ClientConn) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			ctx = context.WithValue(ctx, grpcConnectionKey("grpc_conn"), clientConn)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+		return http.HandlerFunc(fn)
+	}
+
+}
+
+func GetGRPCConnFromContext(r *http.Request) *grpc.ClientConn {
+	return r.Context().Value(grpcConnectionKey("grpc_conn")).(*grpc.ClientConn)
 }

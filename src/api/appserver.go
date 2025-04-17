@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"mistapi/src/auth"
 	pb "mistapi/src/protos/v1/gen"
 
 	"github.com/go-chi/chi/v5"
@@ -12,6 +13,7 @@ import (
 // A completely separate router for administrator routes
 func appserverRouter() http.Handler {
 	r := chi.NewRouter()
+	r.Use(auth.AuthenticateMiddleware)
 	r.Get("/", list)
 	// r.Get("/{id}", getUser)
 	// r.Post("/", createAppserver)
@@ -30,15 +32,15 @@ type Appserver struct {
 // @Tags         appserver
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200  {array}  Appserver
 // @Router       /api/v1/appserver [get]
 func list(w http.ResponseWriter, r *http.Request) {
-	// TODO: add correct token
-	ctx, cancel := setupContext("token")
+	authT := auth.GetAuthotizationToken(r)
+	ctx, cancel := setupContext(authT.Token)
 	defer cancel()
 
-	grpcC := GetGRPCConnFromContext(r)
-	c := Client{Conn: grpcC}
+	c := Client{Conn: GetGRPCConnFromContext(r)}
 	response, err := c.GetServerClient().ListAppservers(
 		ctx, &pb.ListAppserversRequest{},
 	)

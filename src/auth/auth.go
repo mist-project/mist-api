@@ -22,7 +22,6 @@ type TokenAndClaims struct {
 
 type contextKey string
 
-const JwtClaimsContextKey string = "jwt-token"
 const tokenContextKey = contextKey("auth_token")
 
 func AuthenticateMiddleware(next http.Handler) http.Handler {
@@ -60,6 +59,10 @@ func AuthorizeToken(authorization string) (*TokenAndClaims, error) {
 		Token:  parts[1],
 		Claims: claims,
 	}, nil
+}
+
+func GetAuthotizationToken(r *http.Request) *TokenAndClaims {
+	return r.Context().Value(contextKey(tokenContextKey)).(*TokenAndClaims)
 }
 
 func verifyJWT(tokenStr string) (*CustomJWTClaims, error) {
