@@ -30,6 +30,12 @@ compile-protos cp:
 	@buf generate
 
 # ----- TESTS -----
+run-tests t: test-auth
+
+test-auth:
+	@echo -----------------------------------------
+	@go test mistapi/src/auth -coverprofile=coverage/coverage.out  $(go_test_flags)
+	@go tool cover $(go_test_coverage_flags)
 
 # ----- FORMAT -----
 lint:

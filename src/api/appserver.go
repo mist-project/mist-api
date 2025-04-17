@@ -33,7 +33,8 @@ type Appserver struct {
 // @Success      200  {array}  Appserver
 // @Router       /api/v1/appserver [get]
 func list(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := setupContext()
+	// TODO: add correct token
+	ctx, cancel := setupContext("token")
 	defer cancel()
 
 	grpcC := GetGRPCConnFromContext(r)

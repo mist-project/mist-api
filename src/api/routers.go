@@ -8,6 +8,7 @@ import (
 	"os"
 
 	_ "mistapi/docs"
+	"mistapi/src/auth"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -18,9 +19,9 @@ import (
 
 type grpcConnectionKey string
 
-// @title Swagger Example API
+// @title Mist API Docs
 // @version 1.0
-// @description This is a sample server Petstore server.
+// @description Doc contains all the API endpoints to perform operations in Mist App.
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -29,9 +30,6 @@ type grpcConnectionKey string
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host petstore.swagger.io
-// @BasePath /v2
 func StartService() {
 
 	clientConn, err := grpc.NewClient(
@@ -50,11 +48,13 @@ func StartService() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.RequestID)
 	r.Use(setGRPCConnection(clientConn))
+	r.Use(auth.AuthenticateMiddleware)
 
 	// Mount the user router
 	r.Mount("/api/v1/appserver", appserverRouter())
 
 	r.Get("/swagger/*", httpSwagger.Handler(
+		// TODO: change the localhost domain
 		httpSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", os.Getenv("APP_PORT")))))
 
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("APP_PORT")), r)
