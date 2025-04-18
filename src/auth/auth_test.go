@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"context"
 	"mistapi/src/auth"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type DummyRequest struct{}
@@ -197,5 +199,53 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "invalid audience claim")
 		assert.Nil(t, tac)
+	})
+}
+
+func TestGetAuthotizationToken(t *testing.T) {
+	t.Run("when_token_is_added_in_context_it_is_returned", func(t *testing.T) {
+		// ARRANGE
+		// Prepare the data we want to store in the context
+		expectedClaims := &auth.CustomJWTClaims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer:  "exampleIssuer",
+				Subject: "exampleSubject",
+			},
+			UserID: "testUserID",
+		}
+		expectedToken := &auth.TokenAndClaims{
+			Claims: expectedClaims,
+			Token:  "mockToken123",
+		}
+
+		// Create a new HTTP request using http.NewRequest
+		req, _ := http.NewRequest("GET", "/api/v1/endpoint", nil)
+
+		// Add the token and claims to the request's context
+		ctx := context.WithValue(req.Context(), auth.TokenContextKey, expectedToken)
+		req = req.WithContext(ctx)
+
+		//ACT
+		actualToken, _ := auth.GetAuthotizationToken(req)
+
+		// ASSERT
+		assert.NotNil(t, actualToken, "Expected a non-nil token")
+		assert.Equal(t, expectedToken.Token, actualToken.Token, "Expected token values to match")
+		assert.Equal(t, expectedToken.Claims, actualToken.Claims, "Expected claims to match")
+
+	})
+
+	t.Run("when_token_not_in_context_it_returns_nil", func(t *testing.T) {
+		// ARRANGE
+		// Create a new HTTP request using http.NewRequest
+		req, _ := http.NewRequest("GET", "/api/v1/endpoint", nil)
+
+		// ACT
+		// Call GetAuthotizationToken with the mock request
+		token, _ := auth.GetAuthotizationToken(req)
+
+		// ASSERT
+		// Check that the returned token is nil
+		require.Nil(t, token, "Expected token to be nil when no token is set in context")
 	})
 }

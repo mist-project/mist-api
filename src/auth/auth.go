@@ -22,7 +22,7 @@ type TokenAndClaims struct {
 
 type contextKey string
 
-const tokenContextKey = contextKey("auth_token")
+const TokenContextKey = contextKey("auth_token")
 
 func AuthenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,14 +31,16 @@ func AuthenticateMiddleware(next http.Handler) http.Handler {
 		tac, err := AuthorizeToken(authorization)
 
 		if err != nil {
-			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
+			// TODO: use better logging solution
+			fmt.Printf("Unathorized API call: %v", err)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		// TODO: add authorization in the future
 
 		// Add to context
-		ctx := context.WithValue(r.Context(), tokenContextKey, tac)
+		ctx := context.WithValue(r.Context(), TokenContextKey, tac)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -61,8 +63,14 @@ func AuthorizeToken(authorization string) (*TokenAndClaims, error) {
 	}, nil
 }
 
-func GetAuthotizationToken(r *http.Request) *TokenAndClaims {
-	return r.Context().Value(contextKey(tokenContextKey)).(*TokenAndClaims)
+func GetAuthotizationToken(r *http.Request) (*TokenAndClaims, error) {
+	token, ok := r.Context().Value(TokenContextKey).(*TokenAndClaims)
+	if ok {
+		return token, nil
+	}
+
+	// this should never happen.
+	return nil, fmt.Errorf("Invalid token.")
 }
 
 func verifyJWT(tokenStr string) (*CustomJWTClaims, error) {
