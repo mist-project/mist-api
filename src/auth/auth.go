@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -32,7 +33,7 @@ func AuthenticateMiddleware(next http.Handler) http.Handler {
 
 		if err != nil {
 			// TODO: use better logging solution
-			fmt.Printf("Unathorized API call: %v", err)
+			log.Printf("Unathorized API call: %v", err)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

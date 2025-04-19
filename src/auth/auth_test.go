@@ -2,10 +2,12 @@ package auth_test
 
 import (
 	"context"
+	"log"
 	"mistapi/src/auth"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +19,9 @@ import (
 type DummyRequest struct{}
 
 func TestAuthenticateMiddleware(t *testing.T) {
+	log.SetOutput(new(strings.Builder))
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		authHeader     string
@@ -63,6 +68,9 @@ func TestAuthenticateMiddleware(t *testing.T) {
 }
 
 func TestAuthorizeToken(t *testing.T) {
+	log.SetOutput(new(strings.Builder))
+	t.Parallel()
+
 	t.Run("valid_token_is_successful", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
@@ -203,6 +211,9 @@ func TestAuthorizeToken(t *testing.T) {
 }
 
 func TestGetAuthotizationToken(t *testing.T) {
+	log.SetOutput(new(strings.Builder))
+	t.Parallel()
+
 	t.Run("when_token_is_added_in_context_it_is_returned", func(t *testing.T) {
 		// ARRANGE
 		// Prepare the data we want to store in the context

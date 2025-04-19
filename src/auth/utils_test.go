@@ -16,11 +16,8 @@ type CreateTokenParams struct {
 	userId    string
 }
 
-func createJwtToken(t *testing.T, params *CreateTokenParams) string {
-	// Define secret key for signing the token
-
-	// Define JWT claims
-	claims := &auth.CustomJWTClaims{
+func CreateTokenClaims(params *CreateTokenParams) *auth.CustomJWTClaims {
+	return &auth.CustomJWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:   params.iss,
 			Audience: params.aud,
@@ -30,6 +27,14 @@ func createJwtToken(t *testing.T, params *CreateTokenParams) string {
 		},
 		UserID: params.userId,
 	}
+}
+
+func createJwtToken(t *testing.T, params *CreateTokenParams) string {
+	// Define secret key for signing the token
+
+	// Define JWT claims
+	claims := CreateTokenClaims(params)
+
 	// Create a new token with specified claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

@@ -7,44 +7,47 @@ import (
 	"os"
 
 	_ "mistapi/docs"
+	"mistapi/src/service"
 
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
-
-type grpcConnectionKey string
 
 func StartService() {
 
-	clientConn, err := grpc.NewClient(
-		os.Getenv("MIST_BACKEND_APP_URL"),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	defer clientConn.Close()
+	// initialize grpc connection
+	service.GetGrpcClientConnection()
+	defer service.CloseGrpcConnection()
 
-	if err != nil {
-		log.Panicf("Error communicating with backend service: %v", err)
-	}
+	r := SetupRouter()
 
+	addr := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
+	// TODO: use better logging solution
+	log.Printf("Server running at %s\n", addr)
+	http.ListenAndServe(addr, r)
+}
+
+func SetupRouter() *chi.Mux {
 	r := chi.NewRouter()
 
 	// SETUP MIDDDLEWARES
 	r.Use(middleware.Logger)
 	r.Use(middleware.RequestID)
-	r.Use(setGRPCConnection(clientConn))
 
 	// Mount the user router
+	r.Get("/health", HealthHandler)
+
 	r.Mount("/api/v1/appserver", appserverRouter())
 
+	// TODO: change the localhost domain
 	r.Get("/swagger/*", httpSwagger.Handler(
-		// TODO: change the localhost domain
 		httpSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", os.Getenv("APP_PORT")))))
 
-	addr := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
-	fmt.Printf("Server running at %s\n", addr)
-	http.ListenAndServe(addr, r)
+	return r
+}
 
+func HealthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
