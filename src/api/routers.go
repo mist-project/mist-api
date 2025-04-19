@@ -44,6 +44,7 @@ func SetupRouter() *chi.Mux {
 
 		r.Mount("/v1/appserver", appserverRouter())
 		r.Mount("/v1/appserver-role", appserverRoleRouter())
+		r.Mount("/v1/appserver-sub", appserverSubRouter())
 	})
 
 	// TODO: change the localhost domain
