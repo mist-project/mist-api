@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"log"
@@ -53,6 +54,23 @@ func withURLParam(r *http.Request, key, value string) *http.Request {
 	r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
 	rctx.URLParams.Add(key, value)
 	return r
+}
+
+func marshallPayload(t *testing.T, data interface{}) *bytes.Buffer {
+	body, err := json.Marshal(data)
+	if err != nil {
+		t.Fatalf("error marshalling body: %v", err)
+	}
+	return bytes.NewBuffer(body)
+}
+
+func marshallResponse(t *testing.T, data interface{}) string {
+	expected, err := json.Marshal(data)
+	if err != nil {
+		t.Fatalf("error marshalling response: %v", err)
+	}
+
+	return string(expected)
 }
 
 func TestHandleGrpcError(t *testing.T) {
