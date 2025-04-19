@@ -21,7 +21,7 @@ import (
 func TestCreateAppserverRole(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 
-	url := "/api/v1/appserver-role"
+	url := "/api/v1/appserver-roles"
 
 	t.Run("successfully_creating_appserver_role", func(t *testing.T) {
 		// ARRANGE

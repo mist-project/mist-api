@@ -21,7 +21,7 @@ import (
 func TestCreateAppserverSub(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 
-	url := "/api/v1/appserver-sub"
+	url := "/api/v1/appserver-subs"
 
 	t.Run("successfully_creating_appserver_sub", func(t *testing.T) {
 		// ARRANGE

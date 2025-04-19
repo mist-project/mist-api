@@ -33,13 +33,13 @@ func appserverRoleRouter() http.Handler {
 // AppserverRoleCreateHandler godoc
 // @Summary      Create an appserver role
 // @Description  Create an appserver role
-// @Tags         appserver-role
+// @Tags         appserver-roles
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        appserver  body      AppserverRoleCreate  true  "AppserverRoleCreate"
 // @Success      201 {object} AppserverRole
-// @Router       /api/v1/appserver-role [post]
+// @Router       /api/v1/appserver-roles [post]
 func AppserverRoleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	var role AppserverRoleCreate
 
@@ -75,13 +75,13 @@ func AppserverRoleCreateHandler(w http.ResponseWriter, r *http.Request) {
 // AppserverRoleDeleteHandler godoc
 // @Summary      Delete appserver role by id
 // @Description  Delete appserver role by id, only owners of server can perform this action
-// @Tags         appserver-role
+// @Tags         appserver-roles
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Appserver role ID"
 // @Security     BearerAuth
 // @Success      204
-// @Router       /api/v1/appserver-role/{id} [delete]
+// @Router       /api/v1/appserver-roles/{id} [delete]
 func AppserverRoleDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
 

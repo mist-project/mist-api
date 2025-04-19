@@ -57,7 +57,7 @@ type AppserverAndSub struct {
 // @Security     BearerAuth
 // @Param        appserver  body      AppserverCreate  true  "AppserverCreate"
 // @Success      201 {object} Appserver
-// @Router       /api/v1/appserver [post]
+// @Router       /api/v1/appservers [post]
 func AppserverCreateHandler(w http.ResponseWriter, r *http.Request) {
 	var appserver AppserverCreate
 
@@ -93,7 +93,7 @@ func AppserverCreateHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      200  {array}  Appserver
-// @Router       /api/v1/appserver [get]
+// @Router       /api/v1/appservers [get]
 func AppserverListHandler(w http.ResponseWriter, r *http.Request) {
 	authT, _ := auth.GetAuthotizationToken(r)
 	ctx, cancel := service.SetupGrpcHeaders(authT.Token)
@@ -130,7 +130,7 @@ func AppserverListHandler(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      200  {array}  AppserverAndSub
-// @Router       /api/v1/appserver/subs [get]
+// @Router       /api/v1/appservers/subs [get]
 func AppserverUserListSubsHandler(w http.ResponseWriter, r *http.Request) {
 	authT, _ := auth.GetAuthotizationToken(r)
 	ctx, cancel := service.SetupGrpcHeaders(authT.Token)
@@ -171,7 +171,7 @@ func AppserverUserListSubsHandler(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      string  true  "Appserver ID"
 // @Security     BearerAuth
 // @Success      200 {array} AppserverDetail
-// @Router       /api/v1/appserver/{id} [get]
+// @Router       /api/v1/appservers/{id} [get]
 func AppserverDetailHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
 	fmt.Printf("->> %s|\n", sId)
@@ -208,7 +208,7 @@ func AppserverDetailHandler(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      string  true  "Appserver ID"
 // @Security     BearerAuth
 // @Success      200 {array} AppuserAppserverSub
-// @Router       /api/v1/appserver/{id}/subs [get]
+// @Router       /api/v1/appservers/{id}/subs [get]
 func AppserverListSubsHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
 
@@ -249,7 +249,7 @@ func AppserverListSubsHandler(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      string  true  "Appserver ID"
 // @Security     BearerAuth
 // @Success      200 {array} AppserverRole
-// @Router       /api/v1/appserver/{id}/roles [get]
+// @Router       /api/v1/appservers/{id}/roles [get]
 func AppserverListRolesHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
 
@@ -290,7 +290,7 @@ func AppserverListRolesHandler(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      string  true  "Appserver ID"
 // @Security     BearerAuth
 // @Success      204
-// @Router       /api/v1/appserver/{id} [delete]
+// @Router       /api/v1/appservers/{id} [delete]
 func AppserverDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
 

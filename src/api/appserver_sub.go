@@ -32,13 +32,13 @@ func appserverSubRouter() http.Handler {
 // AppserverSubCreateHandler godoc
 // @Summary      Create an appserver sub
 // @Description  Create an appserver sub
-// @Tags         appserver-sub
+// @Tags         appserver-subs
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        appserver  body      AppserverSubCreate  true  "AppserverSubCreate"
 // @Success      201 {object} AppserverSub
-// @Router       /api/v1/appserver-sub [post]
+// @Router       /api/v1/appserver-subs [post]
 func AppserverSubCreateHandler(w http.ResponseWriter, r *http.Request) {
 	var sub AppserverSubCreate
 
@@ -72,13 +72,13 @@ func AppserverSubCreateHandler(w http.ResponseWriter, r *http.Request) {
 // AppserverSubDeleteHandler godoc
 // @Summary      Delete appserver sub by id
 // @Description  Delete appserver sub by id (removing a user from channel)
-// @Tags         appserver-sub
+// @Tags         appserver-subs
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Appserver sub ID"
 // @Security     BearerAuth
 // @Success      204
-// @Router       /api/v1/appserver-sub/{id} [delete]
+// @Router       /api/v1/appserver-subs/{id} [delete]
 func AppserverSubDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
 

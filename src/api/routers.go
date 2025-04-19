@@ -42,9 +42,10 @@ func SetupRouter() *chi.Mux {
 	r.Route("/api/", func(r chi.Router) {
 		r.Use(auth.AuthenticateMiddleware)
 
-		r.Mount("/v1/appserver", appserverRouter())
-		r.Mount("/v1/appserver-role", appserverRoleRouter())
-		r.Mount("/v1/appserver-sub", appserverSubRouter())
+		r.Mount("/v1/appservers", appserverRouter())
+		r.Mount("/v1/appserver-roles", appserverRoleRouter())
+		r.Mount("/v1/appserver-subs", appserverSubRouter())
+		r.Mount("/v1/channels", channelRouter())
 	})
 
 	// TODO: change the localhost domain

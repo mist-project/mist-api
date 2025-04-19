@@ -44,7 +44,7 @@ func TestList(t *testing.T) {
 		MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		req, err := http.NewRequest("GET", "/api/v1/appserver", nil)
+		req, err := http.NewRequest("GET", "/api/v1/appservers", nil)
 		require.NoError(t, err)
 
 		// Mock the token in the request context
@@ -75,7 +75,7 @@ func TestList(t *testing.T) {
 		MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		req, err := http.NewRequest("GET", "/api/v1/appserver", nil)
+		req, err := http.NewRequest("GET", "/api/v1/appservers", nil)
 		require.NoError(t, err)
 
 		// Mock the token in the request context
@@ -126,7 +126,7 @@ func TestAppserverUserListSubsHandler(t *testing.T) {
 		MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		req, err := http.NewRequest("GET", "/api/v1/appserver/subs", nil)
+		req, err := http.NewRequest("GET", "/api/v1/appservers/subs", nil)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
@@ -153,7 +153,7 @@ func TestAppserverUserListSubsHandler(t *testing.T) {
 		MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		req, err := http.NewRequest("GET", "/api/v1/appserver/subs", nil)
+		req, err := http.NewRequest("GET", "/api/v1/appservers/subs", nil)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
@@ -189,7 +189,7 @@ func TestCreateAppserver(t *testing.T) {
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, api.AppserverCreate{Name: appserver.Name})
-		req, err := http.NewRequest("POST", "/api/v1/appserver", payload)
+		req, err := http.NewRequest("POST", "/api/v1/appservers", payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
@@ -216,7 +216,7 @@ func TestCreateAppserver(t *testing.T) {
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, api.AppserverCreate{Name: "foo"})
-		req, err := http.NewRequest("POST", "/api/v1/appserver", payload)
+		req, err := http.NewRequest("POST", "/api/v1/appservers", payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
@@ -243,7 +243,7 @@ func TestCreateAppserver(t *testing.T) {
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, "invalid")
-		req, err := http.NewRequest("POST", "/api/v1/appserver", payload)
+		req, err := http.NewRequest("POST", "/api/v1/appservers", payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
