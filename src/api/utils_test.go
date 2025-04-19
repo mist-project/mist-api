@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"mistapi/src/api"
-	"mistapi/src/auth"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"mistapi/src/api"
+	"mistapi/src/auth"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"

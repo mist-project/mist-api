@@ -14,7 +14,6 @@ import (
 
 func appserverRouter() http.Handler {
 	r := chi.NewRouter()
-	r.Use(auth.AuthenticateMiddleware)
 
 	r.Post("/", AppserverCreateHandler) // create an appserver
 	r.Get("/", AppserverListHandler)    // list all existing servers (most likely to be deprecated)

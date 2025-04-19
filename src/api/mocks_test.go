@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc"
-
 	pb "mistapi/src/protos/v1/gen"
 	"mistapi/src/service"
+
+	"github.com/stretchr/testify/mock"
+	"google.golang.org/grpc"
 )
 
 type MockClient struct {

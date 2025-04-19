@@ -2,8 +2,9 @@ package service_test
 
 import (
 	"fmt"
-	"mistapi/src/service"
 	"testing"
+
+	"mistapi/src/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

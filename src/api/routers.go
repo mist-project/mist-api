@@ -7,6 +7,7 @@ import (
 	"os"
 
 	_ "mistapi/docs"
+	"mistapi/src/auth"
 	"mistapi/src/service"
 
 	"github.com/go-chi/chi/v5"
@@ -38,7 +39,12 @@ func SetupRouter() *chi.Mux {
 	// Mount the user router
 	r.Get("/health", HealthHandler)
 
-	r.Mount("/api/v1/appserver", appserverRouter())
+	r.Route("/api/", func(r chi.Router) {
+		r.Use(auth.AuthenticateMiddleware)
+
+		r.Mount("/v1/appserver", appserverRouter())
+		r.Mount("/v1/appserver-role", appserverRoleRouter())
+	})
 
 	// TODO: change the localhost domain
 	r.Get("/swagger/*", httpSwagger.Handler(

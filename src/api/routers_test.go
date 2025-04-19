@@ -1,11 +1,12 @@
 package api_test
 
 import (
-	"mistapi/src/api"
 	"net/http"
 	"os"
 	"testing"
 	"time"
+
+	"mistapi/src/api"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
