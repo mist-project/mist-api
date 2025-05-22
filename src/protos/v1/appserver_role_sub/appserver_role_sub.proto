@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package v1.appserver_role_sub;
+option go_package = "mistapi/src/protos/v1/appserver_role_sub";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+service AppserverRoleSubService {
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc ListServerRoleSubs(ListServerRoleSubsRequest)
+      returns (ListServerRoleSubsResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+}
+
+// ----- STRUCTURES -----
+message AppserverRoleSub {
+  string id = 1;
+  string appuser_id = 2;
+  string appserver_role_id = 3;
+  string appserver_id = 4;
+}
+
+// ----- REQUEST/RESPONSE -----
+message CreateRequest {
+  string appserver_role_id = 1;
+  string appserver_sub_id = 2;
+  string appserver_id = 3;
+  string appuser_id = 4;
+}
+message CreateResponse { AppserverRoleSub appserver_role_sub = 1; }
+
+message ListServerRoleSubsRequest { string appserver_id = 1; }
+message ListServerRoleSubsResponse {
+  repeated AppserverRoleSub appserver_role_subs = 1;
+}
+
+message DeleteRequest { string id = 1; }
+message DeleteResponse {}

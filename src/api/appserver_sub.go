@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"mistapi/src/auth"
-	pb "mistapi/src/protos/v1/gen"
+	pb_appserver_sub "mistapi/src/protos/v1/appserver_sub"
 	"mistapi/src/service"
 
 	"github.com/go-chi/chi/v5"
@@ -52,8 +52,8 @@ func AppserverSubCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().CreateAppserverSub(
-		ctx, &pb.CreateAppserverSubRequest{
+	response, err := c.GetAppserverSubClient().Create(
+		ctx, &pb_appserver_sub.CreateRequest{
 			AppserverId: sub.AppserverId,
 		},
 	)
@@ -87,8 +87,8 @@ func AppserverSubDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	_, err := c.GetServerClient().DeleteAppserverSub(
-		ctx, &pb.DeleteAppserverSubRequest{
+	_, err := c.GetAppserverSubClient().Delete(
+		ctx, &pb_appserver_sub.DeleteRequest{
 			Id: sId,
 		},
 	)

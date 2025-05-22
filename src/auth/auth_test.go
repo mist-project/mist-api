@@ -28,7 +28,7 @@ func TestAuthenticateMiddleware(t *testing.T) {
 		expectedStatus int
 	}{
 		{
-			name: "valid_token_is_successful",
+			name: "Success:valid_token_is_successful",
 			authHeader: bearerToken(createJwtToken(t, &CreateTokenParams{
 				iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
 				aud:       []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
@@ -37,7 +37,7 @@ func TestAuthenticateMiddleware(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name:           "invalid_token_returns_unauthorized",
+			name:           "Error:Error:invalid_token_returns_unauthorized",
 			authHeader:     "Bearer invalid.jwt.token",
 			expectedStatus: http.StatusUnauthorized,
 		},
@@ -71,7 +71,7 @@ func TestAuthorizeToken(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 	t.Parallel()
 
-	t.Run("valid_token_is_successful", func(t *testing.T) {
+	t.Run("Success:valid_token_is_successful", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
 			iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
@@ -87,7 +87,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Equal(t, tac.Token, token)
 	})
 
-	t.Run("token_with_invalid_audience_errors", func(t *testing.T) {
+	t.Run("Error:token_with_invalid_audience_errors", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
 			iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
@@ -104,7 +104,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("token_with_invalid_issuer_errors", func(t *testing.T) {
+	t.Run("Error:token_with_invalid_issuer_errors", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
 			aud:       []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
@@ -120,7 +120,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("token_with_invalid_secret_key_errors", func(t *testing.T) {
+	t.Run("Error:token_with_invalid_secret_key_errors", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
 			iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
@@ -137,7 +137,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("token_with_invalid_format_errors", func(t *testing.T) {
+	t.Run("Error:token_with_invalid_format_errors", func(t *testing.T) {
 		// ARRANGE
 		badToken := "bad_token"
 
@@ -150,7 +150,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("token_with_missing_authorization_header_errors", func(t *testing.T) {
+	t.Run("Error:token_with_missing_authorization_header_errors", func(t *testing.T) {
 		// ARRANGE
 		missingToken := ""
 
@@ -163,7 +163,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("token_with_invalid_authorization_bearer_header_errors", func(t *testing.T) {
+	t.Run("Error:token_with_invalid_authorization_bearer_header_errors", func(t *testing.T) {
 		// ARRANGE
 		token := "token_invalid"
 
@@ -176,7 +176,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("empty_authorization_bearer_header_errors", func(t *testing.T) {
+	t.Run("Error:empty_authorization_bearer_header_errors", func(t *testing.T) {
 		// ARRANGE
 		token := ""
 
@@ -189,7 +189,7 @@ func TestAuthorizeToken(t *testing.T) {
 		assert.Nil(t, tac)
 	})
 
-	t.Run("token_with_invalid_claims_format_for_audience_errors", func(t *testing.T) {
+	t.Run("Error:token_with_invalid_claims_format_for_audience_errors", func(t *testing.T) {
 		// ARRANGE
 		claims := &jwt.RegisteredClaims{
 			Issuer:    os.Getenv("MIST_PY_API_JWT_ISSUER"),

@@ -1,21 +1,20 @@
 syntax = "proto3";
 
+package v1.channel;
+option go_package = "mistapi/src/protos/v1/channel";
+
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
-package v1.channel;
-option go_package = "/protos";
-
 service ChannelService {
-  // ----- CHANNEL ----
-  rpc CreateChannel(CreateChannelRequest) returns (CreateChannelResponse);
-  rpc GetByIdChannel(GetByIdChannelRequest) returns (GetByIdChannelResponse);
-  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
-  rpc DeleteChannel(DeleteChannelRequest) returns (DeleteChannelResponse);
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse);
+  rpc ListServerChannels(ListServerChannelsRequest)
+      returns (ListServerChannelsResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
 }
 
-// RESOURCES
-
+// ----- STRUCTURES -----
 message Channel {
   string id = 1;
   string name = 2;
@@ -24,19 +23,21 @@ message Channel {
   google.protobuf.Timestamp updated_at = 5;
 }
 
-// ----- Channel -----
-message CreateChannelRequest {
+// ----- REQUEST/RESPONSE -----
+message CreateRequest {
   string name = 1;
   string appserver_id = 2;
 }
-message GetByIdChannelRequest { string id = 1; }
-message ListChannelsRequest {
-  google.protobuf.StringValue name = 1;
-  google.protobuf.StringValue appserver_id = 2;
-}
-message DeleteChannelRequest { string id = 1; }
+message CreateResponse { Channel channel = 1; }
 
-message CreateChannelResponse { Channel channel = 1; }
-message GetByIdChannelResponse { Channel channel = 1; }
-message ListChannelsResponse { repeated Channel channels = 1; }
-message DeleteChannelResponse {}
+message GetByIdRequest { string id = 1; }
+message GetByIdResponse { Channel channel = 1; }
+
+message ListServerChannelsRequest {
+  google.protobuf.StringValue name = 1;
+  string appserver_id = 2;
+}
+message ListServerChannelsResponse { repeated Channel channels = 1; }
+
+message DeleteRequest { string id = 1; }
+message DeleteResponse {}

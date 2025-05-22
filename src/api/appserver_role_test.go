@@ -10,7 +10,8 @@ import (
 	"testing"
 
 	"mistapi/src/api"
-	pb "mistapi/src/protos/v1/gen"
+	pb_appserver_role "mistapi/src/protos/v1/appserver_role"
+	"mistapi/src/testutil"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestCreateAppserverRole(t *testing.T) {
 
 	url := "/api/v1/appserver-roles"
 
-	t.Run("successfully_creating_appserver_role", func(t *testing.T) {
+	t.Run("Success:successfully_creating_appserver_role", func(t *testing.T) {
 		// ARRANGE
 		role := api.AppserverRole{
 			ID:          "1",
@@ -31,18 +32,18 @@ func TestCreateAppserverRole(t *testing.T) {
 			AppserverId: "1",
 		}
 		expected := marshallResponse(t, api.CreateResponse(role))
-		mockCreateRequest := &pb.CreateAppserverRoleRequest{Name: role.Name, AppserverId: role.AppserverId}
-		mockCreateResponse := &pb.CreateAppserverRoleResponse{AppserverRole: &pb.AppserverRole{
+		mockCreateRequest := &pb_appserver_role.CreateRequest{Name: role.Name, AppserverId: role.AppserverId}
+		mockCreateResponse := &pb_appserver_role.CreateResponse{AppserverRole: &pb_appserver_role.AppserverRole{
 			Id:          role.ID,
 			Name:        role.Name,
 			AppserverId: role.AppserverId,
 		}}
-		mockService := new(MockService)
-		mockService.On("CreateAppserverRole", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
+		mockService := new(testutil.MockAppserverRoleService)
+		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverRoleClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, api.AppserverRoleCreate{Name: role.Name, AppserverId: role.AppserverId})
@@ -59,17 +60,17 @@ func TestCreateAppserverRole(t *testing.T) {
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
 
-	t.Run("errors_during_creation_returns_error_status", func(t *testing.T) {
+	t.Run("Error:errors_during_creation_returns_error_status", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Internal Server Error."))
-		mockService := new(MockService)
-		mockCreateRequest := &pb.CreateAppserverRoleRequest{Name: "foo", AppserverId: "1"}
-		mockResponse := &pb.CreateAppserverRoleResponse{}
-		mockService.On("CreateAppserverRole", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
+		mockService := new(testutil.MockAppserverRoleService)
+		mockCreateRequest := &pb_appserver_role.CreateRequest{Name: "foo", AppserverId: "1"}
+		mockResponse := &pb_appserver_role.CreateResponse{}
+		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverRoleClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, api.AppserverRoleCreate{Name: "foo", AppserverId: "1"})
@@ -86,17 +87,17 @@ func TestCreateAppserverRole(t *testing.T) {
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
 
-	t.Run("errors_with_invalid_post_parameters", func(t *testing.T) {
+	t.Run("Error:errors_with_invalid_post_parameters", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Invalid attributes provided."))
-		mockService := new(MockService)
-		mockCreateRequest := &pb.CreateAppserverRoleRequest{Name: "foo", AppserverId: "1"}
-		mockResponse := &pb.CreateAppserverRoleResponse{}
-		mockService.On("CreateAppserverRole", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
+		mockService := new(testutil.MockAppserverRoleService)
+		mockCreateRequest := &pb_appserver_role.CreateRequest{Name: "foo", AppserverId: "1"}
+		mockResponse := &pb_appserver_role.CreateResponse{}
+		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverRoleClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, "invalid")
@@ -122,20 +123,20 @@ func TestDeleteAppserverRole(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	t.Run("is_successful", func(t *testing.T) {
+	t.Run("Success:is_successful", func(t *testing.T) {
 		// ARRANGE
 		aId := "1"
-		mockDeleteRequest := &pb.DeleteAppserverRoleRequest{Id: aId}
-		mockDeleteResponse := &pb.DeleteAppserverRoleResponse{}
+		mockDeleteRequest := &pb_appserver_role.DeleteRequest{Id: aId}
+		mockDeleteResponse := &pb_appserver_role.DeleteResponse{}
 
-		mockService := new(MockService)
+		mockService := new(testutil.MockAppserverRoleService)
 		mockService.On(
-			"DeleteAppserverRole", mock.Anything, mockDeleteRequest,
+			"Delete", mock.Anything, mockDeleteRequest,
 		).Return(mockDeleteResponse, nil)
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverRoleClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", aId), nil)
@@ -151,16 +152,16 @@ func TestDeleteAppserverRole(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, rr.Code)
 	})
 
-	t.Run("on_error_when_deleting_returns_error", func(t *testing.T) {
+	t.Run("Error:on_error_when_deleting_returns_error", func(t *testing.T) {
 		// ARRANGE
 		aId := "1"
-		mockService := new(MockService)
-		mockDeleteRequest := &pb.DeleteAppserverRoleRequest{Id: aId}
-		mockResponse := &pb.DeleteAppserverRoleResponse{}
-		mockService.On("DeleteAppserverRole", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockService := new(testutil.MockAppserverRoleService)
+		mockDeleteRequest := &pb_appserver_role.DeleteRequest{Id: aId}
+		mockResponse := &pb_appserver_role.DeleteResponse{}
+		mockService.On("Delete", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverRoleClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", aId), nil)

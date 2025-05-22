@@ -87,9 +87,10 @@ func TestHandleGrpcError(t *testing.T) {
 		{"Unavailable", codes.Unavailable, http.StatusBadGateway, "Server is unresponsive."},
 		{"DeadlineExceeded", codes.DeadlineExceeded, http.StatusBadGateway, "Server timed out."},
 		{"Canceled", codes.Canceled, http.StatusBadGateway, "Server error."},
-		{"Unauthenticated", codes.Unauthenticated, http.StatusUnauthorized, "Unauthorized request."},
+		{"Unauthenticated", codes.Unauthenticated, http.StatusUnauthorized, "simulated error"},
 		{"NotFound", codes.NotFound, http.StatusNotFound, "Not found."},
 		{"AlreadyExists", codes.AlreadyExists, http.StatusConflict, "Resource already exists."},
+		{"AlreadyExists", codes.PermissionDenied, http.StatusConflict, "simulated error"},
 		{"InvalidArgument", codes.InvalidArgument, http.StatusBadRequest, "simulated error"},
 		{"UnhandledCode", codes.DataLoss, http.StatusInternalServerError, "Internal Server Error."},
 	}

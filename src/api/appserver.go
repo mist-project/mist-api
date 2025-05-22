@@ -1,11 +1,12 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"mistapi/src/auth"
-	pb "mistapi/src/protos/v1/gen"
+	pb_appserver "mistapi/src/protos/v1/appserver"
+	pb_appserver_role "mistapi/src/protos/v1/appserver_role"
+	pb_appserver_sub "mistapi/src/protos/v1/appserver_sub"
 	"mistapi/src/service"
 
 	"github.com/go-chi/chi/v5"
@@ -23,7 +24,6 @@ func appserverRouter() http.Handler {
 	r.Get("/{id}/roles", AppserverListRolesHandler) // get all roles an appserver has
 	r.Delete("/{id}", AppserverDeleteHandler)       // delete an appserver
 
-	r.Get("/user-subs", AppserverUserListSubsHandler) // get all appservers a user is subscribed to
 	return r
 }
 
@@ -71,8 +71,8 @@ func AppserverCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().CreateAppserver(
-		ctx, &pb.CreateAppserverRequest{
+	response, err := c.GetAppserverClient().Create(
+		ctx, &pb_appserver.CreateRequest{
 			Name: appserver.Name,
 		},
 	)
@@ -86,8 +86,8 @@ func AppserverCreateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // List godoc
-// @Summary      List of all appservers
-// @Description  List of all appservers
+// @Summary      List of all appservers for a particular user
+// @Description  List of all appservers for a particular user (user in jwt token)
 // @Tags         appserver
 // @Accept       json
 // @Produce      json
@@ -100,45 +100,8 @@ func AppserverListHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().ListAppservers(
-		ctx, &pb.ListAppserversRequest{},
-	)
-
-	if err != nil {
-		HandleGrpcError(w, r, err)
-		return
-	}
-
-	res := make([]Appserver, 0, len(response.Appservers))
-
-	for _, a := range response.Appservers {
-		res = append(res, Appserver{
-			ID:      a.Id,
-			Name:    a.Name,
-			IsOwner: a.IsOwner,
-		})
-	}
-
-	render.JSON(w, r, CreateResponse(res))
-}
-
-// AppserverUserListSubsHandler godoc
-// @Summary      List of appservers for a particular user
-// @Description  List of appservers for a particular user (user in jwt token)
-// @Tags         appserver
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200  {array}  AppserverAndSub
-// @Router       /api/v1/appservers/subs [get]
-func AppserverUserListSubsHandler(w http.ResponseWriter, r *http.Request) {
-	authT, _ := auth.GetAuthotizationToken(r)
-	ctx, cancel := service.SetupGrpcHeaders(authT.Token)
-	defer cancel()
-
-	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().GetUserAppserverSubs(
-		ctx, &pb.GetUserAppserverSubsRequest{},
+	response, err := c.GetAppserverSubClient().ListUserServerSubs(
+		ctx, &pb_appserver_sub.ListUserServerSubsRequest{},
 	)
 
 	if err != nil {
@@ -174,15 +137,14 @@ func AppserverUserListSubsHandler(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/v1/appservers/{id} [get]
 func AppserverDetailHandler(w http.ResponseWriter, r *http.Request) {
 	sId := chi.URLParam(r, "id")
-	fmt.Printf("->> %s|\n", sId)
 
 	authT, _ := auth.GetAuthotizationToken(r)
 	ctx, cancel := service.SetupGrpcHeaders(authT.Token)
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().GetByIdAppserver(
-		ctx, &pb.GetByIdAppserverRequest{
+	response, err := c.GetAppserverClient().GetById(
+		ctx, &pb_appserver.GetByIdRequest{
 			Id: sId,
 		},
 	)
@@ -200,7 +162,7 @@ func AppserverDetailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // AppserverListSubsHandler godoc
-// @Summary      Gets all user subs to a server
+// @Summary      Gets all user subscribed to a server
 // @Description  Gets all users in the server and their sub id
 // @Tags         appserver
 // @Accept       json
@@ -217,8 +179,8 @@ func AppserverListSubsHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().GetAllUsersAppserverSubs(
-		ctx, &pb.GetAllUsersAppserverSubsRequest{
+	response, err := c.GetAppserverSubClient().ListAppserverUserSubs(
+		ctx, &pb_appserver_sub.ListAppserverUserSubsRequest{
 			AppserverId: sId,
 		},
 	)
@@ -258,8 +220,8 @@ func AppserverListRolesHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().GetAllAppserverRoles(
-		ctx, &pb.GetAllAppserverRolesRequest{
+	response, err := c.GetAppserverRoleClient().ListServerRoles(
+		ctx, &pb_appserver_role.ListServerRolesRequest{
 			AppserverId: sId,
 		},
 	)
@@ -299,8 +261,8 @@ func AppserverDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	_, err := c.GetServerClient().DeleteAppserver(
-		ctx, &pb.DeleteAppserverRequest{
+	_, err := c.GetAppserverClient().Delete(
+		ctx, &pb_appserver.DeleteRequest{
 			Id: sId,
 		},
 	)

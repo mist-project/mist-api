@@ -4,12 +4,11 @@ import (
 	"net/http"
 
 	"mistapi/src/auth"
-	pb "mistapi/src/protos/v1/gen"
+	pb_channel "mistapi/src/protos/v1/channel"
 	"mistapi/src/service"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 type Channel struct {
@@ -55,8 +54,8 @@ func ChannelCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetChannelClient().CreateChannel(
-		ctx, &pb.CreateChannelRequest{
+	response, err := c.GetChannelClient().Create(
+		ctx, &pb_channel.CreateRequest{
 			Name:        channel.Name,
 			AppserverId: channel.AppserverId,
 		},
@@ -90,6 +89,7 @@ func ListChannelsHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the appserver ID from URL parameters
 
 	appserverID := r.URL.Query().Get("appserver_id")
+
 	if appserverID == "" {
 		// If appserverid is missing, return a bad request error
 		render.Status(r, http.StatusBadRequest)
@@ -104,9 +104,9 @@ func ListChannelsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a new gRPC client and make the request to list channels for the appserver
 	c := service.NewGrpcClient()
-	response, err := c.GetChannelClient().ListChannels(
-		ctx, &pb.ListChannelsRequest{
-			AppserverId: &wrapperspb.StringValue{Value: appserverID},
+	response, err := c.GetChannelClient().ListServerChannels(
+		ctx, &pb_channel.ListServerChannelsRequest{
+			AppserverId: appserverID,
 		},
 	)
 
@@ -147,8 +147,8 @@ func ChannelDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	_, err := c.GetChannelClient().DeleteChannel(
-		ctx, &pb.DeleteChannelRequest{
+	_, err := c.GetChannelClient().Delete(
+		ctx, &pb_channel.DeleteRequest{
 			Id: cId,
 		},
 	)

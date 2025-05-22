@@ -46,11 +46,13 @@ func mapGrpcStatusToHTTP(code codes.Code, grpcMessage string) (int, string) {
 	case codes.Canceled:
 		return http.StatusBadGateway, "Server error."
 	case codes.Unauthenticated:
-		return http.StatusUnauthorized, "Unauthorized request."
+		return http.StatusUnauthorized, grpcMessage
 	case codes.NotFound:
 		return http.StatusNotFound, "Not found."
 	case codes.AlreadyExists:
 		return http.StatusConflict, "Resource already exists."
+	case codes.PermissionDenied:
+		return http.StatusConflict, grpcMessage
 	case codes.InvalidArgument:
 		return http.StatusBadRequest, grpcMessage
 	default:

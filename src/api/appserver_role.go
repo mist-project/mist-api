@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"mistapi/src/auth"
-	pb "mistapi/src/protos/v1/gen"
+	pb_appserver_role "mistapi/src/protos/v1/appserver_role"
 	"mistapi/src/service"
 
 	"github.com/go-chi/chi/v5"
@@ -53,8 +53,8 @@ func AppserverRoleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	response, err := c.GetServerClient().CreateAppserverRole(
-		ctx, &pb.CreateAppserverRoleRequest{
+	response, err := c.GetAppserverRoleClient().Create(
+		ctx, &pb_appserver_role.CreateRequest{
 			Name:        role.Name,
 			AppserverId: role.AppserverId,
 		},
@@ -90,8 +90,8 @@ func AppserverRoleDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	c := service.NewGrpcClient()
-	_, err := c.GetServerClient().DeleteAppserverRole(
-		ctx, &pb.DeleteAppserverRoleRequest{
+	_, err := c.GetAppserverRoleClient().Delete(
+		ctx, &pb_appserver_role.DeleteRequest{
 			Id: sId,
 		},
 	)

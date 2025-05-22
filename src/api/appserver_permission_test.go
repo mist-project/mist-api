@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"mistapi/src/api"
-	pb_channel "mistapi/src/protos/v1/channel"
+	pb_appserver_permission "mistapi/src/protos/v1/appserver_permission"
 	"mistapi/src/testutil"
 
 	"github.com/go-chi/chi/v5"
@@ -22,72 +22,64 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var (
-	apiUrl = "/api/v1/channels"
-)
-
-func TestCreateChannel(t *testing.T) {
+func TestCreateAppserverPermission(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 
-	t.Run("Success:successfully_creating_channel", func(t *testing.T) {
+	url := "/api/v1/appserver-roles"
+
+	t.Run("Success:successfully_creating_appserver_role", func(t *testing.T) {
 		// ARRANGE
-		channel := api.Channel{
+		role := api.AppserverPermission{
 			ID:          "1",
-			Name:        "foo-channel",
+			AppuserId:   "foo",
 			AppserverId: "1",
 		}
-		expected := marshallResponse(t, api.CreateResponse(channel))
-		mockCreateRequest := &pb_channel.CreateRequest{Name: channel.Name, AppserverId: channel.AppserverId}
-		mockCreateResponse := &pb_channel.CreateResponse{Channel: &pb_channel.Channel{
-			Id:          channel.ID,
-			Name:        channel.Name,
-			AppserverId: channel.AppserverId,
-		}}
-		mockService := new(testutil.MockChannelService)
+		mockCreateRequest := &pb_appserver_permission.CreateRequest{AppuserId: role.AppuserId, AppserverId: role.AppserverId}
+		mockCreateResponse := &pb_appserver_permission.CreateResponse{}
+		mockService := new(testutil.MockAppserverPermissionService)
 		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
 
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		payload := marshallPayload(t, api.ChannelCreate{Name: channel.Name, AppserverId: channel.AppserverId})
-		req, err := http.NewRequest("POST", apiUrl, payload)
+		payload := marshallPayload(t, api.AppserverPermissionCreate{AppuserId: role.AppuserId, AppserverId: role.AppserverId})
+		req, err := http.NewRequest("POST", url, payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
 
 		// ACT
-		api.ChannelCreateHandler(rr, req)
+		api.AppserverPermissionCreateHandler(rr, req)
 
-		// ASSERT
-		assert.Equal(t, http.StatusCreated, rr.Code)
-		assert.JSONEq(t, expected, rr.Body.String())
+		//  ASSERT
+		assert.Equal(t, http.StatusNoContent, rr.Code)
 	})
 
 	t.Run("Error:errors_during_creation_returns_error_status", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Internal Server Error."))
-		mockService := new(testutil.MockChannelService)
-		mockCreateRequest := &pb_channel.CreateRequest{Name: "foo-channel", AppserverId: "1"}
-		mockResponse := &pb_channel.CreateResponse{}
+		mockService := new(testutil.MockAppserverPermissionService)
+		mockCreateRequest := &pb_appserver_permission.CreateRequest{AppuserId: "boom", AppserverId: "boom"}
+		mockResponse := &pb_appserver_permission.CreateResponse{}
 		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
 
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		payload := marshallPayload(t, api.ChannelCreate{Name: "foo-channel", AppserverId: "1"})
-		req, err := http.NewRequest("POST", apiUrl, payload)
+		payload := marshallPayload(t, api.AppserverPermissionCreate{AppuserId: "boom", AppserverId: "boom"})
+		req, err := http.NewRequest("POST", url, payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
 
 		// ACT
-		api.ChannelCreateHandler(rr, req)
+		api.AppserverPermissionCreateHandler(rr, req)
 
-		// ASSERT
+		//  ASSERT
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
@@ -95,32 +87,32 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("Error:errors_with_invalid_post_parameters", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Invalid attributes provided."))
-		mockService := new(testutil.MockChannelService)
-		mockCreateRequest := &pb_channel.CreateRequest{Name: "foo-channel", AppserverId: "1"}
-		mockResponse := &pb_channel.CreateResponse{}
+		mockService := new(testutil.MockAppserverPermissionService)
+		mockCreateRequest := &pb_appserver_permission.CreateRequest{AppuserId: "boom", AppserverId: "boom"}
+		mockResponse := &pb_appserver_permission.CreateResponse{}
 		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
 
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, "invalid")
-		req, err := http.NewRequest("POST", apiUrl, payload)
+		req, err := http.NewRequest("POST", url, payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
 		rr := httptest.NewRecorder()
 
 		// ACT
-		api.ChannelCreateHandler(rr, req)
+		api.AppserverPermissionCreateHandler(rr, req)
 
-		// ASSERT
+		//  ASSERT
 		assert.Equal(t, http.StatusUnprocessableEntity, rr.Code)
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
 }
 
-func TestListChannelsHandler(t *testing.T) {
+func TestListAppserverPermissionUsersHandler(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 
 	params := url.Values{}
@@ -129,28 +121,28 @@ func TestListChannelsHandler(t *testing.T) {
 	urlWithParams := apiUrl + "?" + params.Encode()
 
 	r := chi.NewRouter()
-	r.Get(apiUrl, api.ListChannelsHandler)
+	r.Get(apiUrl, api.AppserverPermissionListHandler)
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	t.Run("Success:successfully_returns_channels", func(t *testing.T) {
+	t.Run("Success:successfully_returns_appserver_permissions", func(t *testing.T) {
 		// ARRANGE
-		channels := []api.Channel{
-			{ID: "1", Name: "bar", AppserverId: appserverId},
-			{ID: "2", Name: "bar", AppserverId: appserverId},
+		permissions := []api.AppserverPermission{
+			{ID: "1", AppuserId: "user", AppserverId: appserverId},
+			{ID: "2", AppuserId: "user", AppserverId: appserverId},
 		}
-		expected := marshallResponse(t, api.CreateResponse(channels))
-		mockRequest := &pb_channel.ListServerChannelsRequest{AppserverId: appserverId}
-		mockResponse := &pb_channel.ListServerChannelsResponse{}
-		mockResponse.Channels = []*pb_channel.Channel{
-			{Id: channels[0].ID, Name: channels[0].Name, AppserverId: channels[0].AppserverId},
-			{Id: channels[1].ID, Name: channels[1].Name, AppserverId: channels[1].AppserverId},
+		expected := marshallResponse(t, api.CreateResponse(permissions))
+		mockRequest := &pb_appserver_permission.ListAppserverUsersRequest{AppserverId: appserverId}
+		mockResponse := &pb_appserver_permission.ListAppserverUsersResponse{}
+		mockResponse.AppserverPermissions = []*pb_appserver_permission.AppserverPermission{
+			{Id: permissions[0].ID, AppuserId: permissions[0].AppuserId, AppserverId: permissions[0].AppserverId},
+			{Id: permissions[1].ID, AppuserId: permissions[1].AppuserId, AppserverId: permissions[1].AppserverId},
 		}
 
-		mockService := new(testutil.MockChannelService)
-		mockService.On("ListServerChannels", mock.Anything, mockRequest).Return(mockResponse, nil)
+		mockService := new(testutil.MockAppserverPermissionService)
+		mockService.On("ListAppserverUsers", mock.Anything, mockRequest).Return(mockResponse, nil)
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		req, err := http.NewRequest("GET", urlWithParams, nil)
@@ -169,14 +161,14 @@ func TestListChannelsHandler(t *testing.T) {
 	t.Run("Error:on_error_returns_error", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Bad request"))
-		mockService := new(testutil.MockChannelService)
-		mockRequest := &pb_channel.ListServerChannelsRequest{AppserverId: appserverId}
-		mockResponse := &pb_channel.ListServerChannelsResponse{}
-		mockService.On("ListServerChannels", mock.Anything, mockRequest).Return(
+		mockService := new(testutil.MockAppserverPermissionService)
+		mockRequest := &pb_appserver_permission.ListAppserverUsersRequest{AppserverId: appserverId}
+		mockResponse := &pb_appserver_permission.ListAppserverUsersResponse{}
+		mockService.On("ListAppserverUsers", mock.Anything, mockRequest).Return(
 			mockResponse, status.Error(codes.InvalidArgument, "Bad request"))
 
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		req, err := http.NewRequest("GET", urlWithParams, nil)
@@ -195,14 +187,14 @@ func TestListChannelsHandler(t *testing.T) {
 	t.Run("Error:errors_when_no_appserver_id_provided", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Appserver ID is required"))
-		mockService := new(testutil.MockChannelService)
-		mockRequest := &pb_channel.ListServerChannelsRequest{AppserverId: appserverId}
-		mockResponse := &pb_channel.ListServerChannelsResponse{}
-		mockService.On("ListServerChannels", mock.Anything, mockRequest).Return(
+		mockService := new(testutil.MockAppserverPermissionService)
+		mockRequest := &pb_appserver_permission.ListAppserverUsersRequest{AppserverId: appserverId}
+		mockResponse := &pb_appserver_permission.ListAppserverUsersResponse{}
+		mockService.On("ListAppserverUsers", mock.Anything, mockRequest).Return(
 			mockResponse, status.Error(codes.InvalidArgument, "Bad request"))
 
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		req, err := http.NewRequest("GET", apiUrl, nil)
@@ -219,35 +211,35 @@ func TestListChannelsHandler(t *testing.T) {
 	})
 }
 
-func TestDeleteChannel(t *testing.T) {
+func TestDeleteAppserverPermission(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 
 	r := chi.NewRouter()
-	r.Delete("/{id}", api.ChannelDeleteHandler)
+	r.Delete("/{id}", api.AppserverPermissionDeleteHandler)
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
 	t.Run("Success:is_successful", func(t *testing.T) {
 		// ARRANGE
-		cId := "1"
-		mockDeleteRequest := &pb_channel.DeleteRequest{Id: cId}
-		mockDeleteResponse := &pb_channel.DeleteResponse{}
+		aId := "1"
+		mockDeleteRequest := &pb_appserver_permission.DeleteRequest{Id: aId}
+		mockDeleteResponse := &pb_appserver_permission.DeleteResponse{}
 
-		mockService := new(testutil.MockChannelService)
+		mockService := new(testutil.MockAppserverPermissionService)
 		mockService.On(
 			"Delete", mock.Anything, mockDeleteRequest,
 		).Return(mockDeleteResponse, nil)
 
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", cId), nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", aId), nil)
 		require.NoError(t, err)
 		rr := httptest.NewRecorder()
 		req = addContextHeaders(req)
-		req = withURLParam(req, "id", cId)
+		req = withURLParam(req, "id", aId)
 
 		// ACT
 		r.ServeHTTP(rr, req)
@@ -258,21 +250,21 @@ func TestDeleteChannel(t *testing.T) {
 
 	t.Run("Error:on_error_when_deleting_returns_error", func(t *testing.T) {
 		// ARRANGE
-		cId := "1"
-		mockService := new(testutil.MockChannelService)
-		mockDeleteRequest := &pb_channel.DeleteRequest{Id: cId}
-		mockResponse := &pb_channel.DeleteResponse{}
+		aId := "1"
+		mockService := new(testutil.MockAppserverPermissionService)
+		mockDeleteRequest := &pb_appserver_permission.DeleteRequest{Id: aId}
+		mockResponse := &pb_appserver_permission.DeleteResponse{}
 		mockService.On("Delete", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
 		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
+		mockClient.On("GetAppserverPermissionClient").Return(mockService)
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", cId), nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", aId), nil)
 		require.NoError(t, err)
 		rr := httptest.NewRecorder()
 		req = addContextHeaders(req)
-		req = withURLParam(req, "id", cId)
+		req = withURLParam(req, "id", aId)
 
 		// ACT
 		r.ServeHTTP(rr, req)

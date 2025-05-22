@@ -10,7 +10,8 @@ import (
 	"testing"
 
 	"mistapi/src/api"
-	pb "mistapi/src/protos/v1/gen"
+	pb_appserver_sub "mistapi/src/protos/v1/appserver_sub"
+	"mistapi/src/testutil"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestCreateAppserverSub(t *testing.T) {
 
 	url := "/api/v1/appserver-subs"
 
-	t.Run("successfully_creating_appserver_sub", func(t *testing.T) {
+	t.Run("Success:successfully_creating_appserver_sub", func(t *testing.T) {
 		// ARRANGE
 		sub := api.AppserverSub{
 			ID:          "1",
@@ -31,17 +32,17 @@ func TestCreateAppserverSub(t *testing.T) {
 			AppuserId:   "",
 		}
 		expected := marshallResponse(t, api.CreateResponse(sub))
-		mockCreateRequest := &pb.CreateAppserverSubRequest{AppserverId: sub.AppserverId}
-		mockCreateResponse := &pb.CreateAppserverSubResponse{AppserverSub: &pb.AppserverSub{
+		mockCreateRequest := &pb_appserver_sub.CreateRequest{AppserverId: sub.AppserverId}
+		mockCreateResponse := &pb_appserver_sub.CreateResponse{AppserverSub: &pb_appserver_sub.AppserverSub{
 			Id:          sub.ID,
 			AppserverId: sub.AppserverId,
 		}}
-		mockService := new(MockService)
-		mockService.On("CreateAppserverSub", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
+		mockService := new(testutil.MockAppserverSubService)
+		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverSubClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, api.AppserverSubCreate{AppserverId: sub.AppserverId})
@@ -58,17 +59,17 @@ func TestCreateAppserverSub(t *testing.T) {
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
 
-	t.Run("errors_during_creation_returns_error_status", func(t *testing.T) {
+	t.Run("Error:errors_during_creation_returns_error_status", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Internal Server Error."))
-		mockService := new(MockService)
-		mockCreateRequest := &pb.CreateAppserverSubRequest{AppserverId: "1"}
-		mockResponse := &pb.CreateAppserverSubResponse{}
-		mockService.On("CreateAppserverSub", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
+		mockService := new(testutil.MockAppserverSubService)
+		mockCreateRequest := &pb_appserver_sub.CreateRequest{AppserverId: "1"}
+		mockResponse := &pb_appserver_sub.CreateResponse{}
+		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverSubClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, api.AppserverSubCreate{AppserverId: "1"})
@@ -85,17 +86,17 @@ func TestCreateAppserverSub(t *testing.T) {
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
 
-	t.Run("errors_with_invalid_post_parameters", func(t *testing.T) {
+	t.Run("Error:errors_with_invalid_post_parameters", func(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Invalid attributes provided."))
-		mockService := new(MockService)
-		mockCreateRequest := &pb.CreateAppserverSubRequest{AppserverId: "1"}
-		mockResponse := &pb.CreateAppserverSubResponse{}
-		mockService.On("CreateAppserverSub", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
+		mockService := new(testutil.MockAppserverSubService)
+		mockCreateRequest := &pb_appserver_sub.CreateRequest{AppserverId: "1"}
+		mockResponse := &pb_appserver_sub.CreateResponse{}
+		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverSubClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		payload := marshallPayload(t, "invalid")
@@ -121,20 +122,20 @@ func TestDeleteAppserverSub(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	t.Run("is_successful", func(t *testing.T) {
+	t.Run("Success:is_successful", func(t *testing.T) {
 		// ARRANGE
 		sId := "1"
-		mockDeleteRequest := &pb.DeleteAppserverSubRequest{Id: sId}
-		mockDeleteResponse := &pb.DeleteAppserverSubResponse{}
+		mockDeleteRequest := &pb_appserver_sub.DeleteRequest{Id: sId}
+		mockDeleteResponse := &pb_appserver_sub.DeleteResponse{}
 
-		mockService := new(MockService)
+		mockService := new(testutil.MockAppserverSubService)
 		mockService.On(
-			"DeleteAppserverSub", mock.Anything, mockDeleteRequest,
+			"Delete", mock.Anything, mockDeleteRequest,
 		).Return(mockDeleteResponse, nil)
 
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverSubClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", sId), nil)
@@ -150,16 +151,16 @@ func TestDeleteAppserverSub(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, rr.Code)
 	})
 
-	t.Run("on_error_when_deleting_returns_error", func(t *testing.T) {
+	t.Run("Error:on_error_when_deleting_returns_error", func(t *testing.T) {
 		// ARRANGE
 		sId := "1"
-		mockService := new(MockService)
-		mockDeleteRequest := &pb.DeleteAppserverSubRequest{Id: sId}
-		mockResponse := &pb.DeleteAppserverSubResponse{}
-		mockService.On("DeleteAppserverSub", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
-		mockClient := new(MockClient)
-		mockClient.On("GetServerClient").Return(mockService)
-		MockGrpcClient(t, mockClient)
+		mockService := new(testutil.MockAppserverSubService)
+		mockDeleteRequest := &pb_appserver_sub.DeleteRequest{Id: sId}
+		mockResponse := &pb_appserver_sub.DeleteResponse{}
+		mockService.On("Delete", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
+		mockClient := new(testutil.MockClient)
+		mockClient.On("GetAppserverSubClient").Return(mockService)
+		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
 		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", sId), nil)

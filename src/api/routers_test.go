@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"mistapi/src/api"
+	"mistapi/src/testutil"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,8 +17,8 @@ func TestStartService(t *testing.T) {
 	t.Parallel()
 
 	// ARANGE
-	mockClient := new(MockClient)
-	MockGrpcClient(t, mockClient)
+	mockClient := new(testutil.MockClient)
+	testutil.MockGrpcClient(t, mockClient)
 
 	// Set test env port
 	os.Setenv("APP_PORT", "8081")
