@@ -3,6 +3,7 @@ syntax = "proto3";
 package v1.channel_role;
 option go_package = "mistapi/src/protos/v1/channel_role";
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
@@ -25,17 +26,20 @@ message ChannelRole {
 
 // ----- REQUEST/RESPONSE -----
 message CreateRequest {
-  string channel_id = 1;
-  string appserver_id = 2;
-  string appserver_role_id = 3;
+  string channel_id = 1 [ (buf.validate.field).string.uuid = true ];
+  string appserver_id = 2 [ (buf.validate.field).string.uuid = true ];
+  string appserver_role_id = 3 [ (buf.validate.field).string.uuid = true ];
 }
 message CreateResponse { ChannelRole channel_role = 1; }
 
 message ListChannelRolesRequest {
-  string channel_id = 1;
-  string appserver_id = 2;
+  string channel_id = 1 [ (buf.validate.field).string.uuid = true ];
+  string appserver_id = 2 [ (buf.validate.field).string.uuid = true ];
 }
 message ListChannelRolesResponse { repeated ChannelRole channel_roles = 1; }
 
-message DeleteRequest { string id = 1; }
+message DeleteRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string appserver_id = 2 [ (buf.validate.field).string.uuid = true ];
+}
 message DeleteResponse {}

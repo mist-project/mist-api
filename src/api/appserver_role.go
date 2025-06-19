@@ -4,23 +4,13 @@ import (
 	"net/http"
 
 	"mistapi/src/auth"
-	pb_appserver_role "mistapi/src/protos/v1/appserver_role"
+	"mistapi/src/protos/v1/appserver_role"
 	"mistapi/src/service"
+	"mistapi/src/types"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
-
-type AppserverRole struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	AppserverId string `json:"appserver_id"`
-}
-
-type AppserverRoleCreate struct {
-	Name        string `json:"name"`
-	AppserverId string `json:"appserver_id"`
-}
 
 func appserverRoleRouter() http.Handler {
 	r := chi.NewRouter()
@@ -37,11 +27,11 @@ func appserverRoleRouter() http.Handler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        appserver  body      AppserverRoleCreate  true  "AppserverRoleCreate"
-// @Success      201 {object} AppserverRole
+// @Param        appserver  body      types.AppserverRoleCreate  true  "AppserverRoleCreate"
+// @Success      201 {object} types.AppserverRole
 // @Router       /api/v1/appserver-roles [post]
 func AppserverRoleCreateHandler(w http.ResponseWriter, r *http.Request) {
-	var role AppserverRoleCreate
+	var role types.AppserverRoleCreate
 
 	err := DecodeRequestBody(w, r, &role)
 	if err != nil {
@@ -54,7 +44,7 @@ func AppserverRoleCreateHandler(w http.ResponseWriter, r *http.Request) {
 
 	c := service.NewGrpcClient()
 	response, err := c.GetAppserverRoleClient().Create(
-		ctx, &pb_appserver_role.CreateRequest{
+		ctx, &appserver_role.CreateRequest{
 			Name:        role.Name,
 			AppserverId: role.AppserverId,
 		},
@@ -65,7 +55,7 @@ func AppserverRoleCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.Status(r, http.StatusCreated)
-	render.JSON(w, r, CreateResponse(&AppserverRole{
+	render.JSON(w, r, CreateResponse(&types.AppserverRole{
 		ID:          response.AppserverRole.Id,
 		Name:        response.AppserverRole.Name,
 		AppserverId: response.AppserverRole.AppserverId,
@@ -91,7 +81,7 @@ func AppserverRoleDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	c := service.NewGrpcClient()
 	_, err := c.GetAppserverRoleClient().Delete(
-		ctx, &pb_appserver_role.DeleteRequest{
+		ctx, &appserver_role.DeleteRequest{
 			Id: sId,
 		},
 	)

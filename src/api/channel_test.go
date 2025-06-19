@@ -6,20 +6,18 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 
 	"mistapi/src/api"
-	pb_channel "mistapi/src/protos/v1/channel"
+	"mistapi/src/protos/v1/channel"
 	"mistapi/src/testutil"
+	"mistapi/src/types"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -31,17 +29,17 @@ func TestCreateChannel(t *testing.T) {
 
 	t.Run("Success:successfully_creating_channel", func(t *testing.T) {
 		// ARRANGE
-		channel := api.Channel{
+		c := types.Channel{
 			ID:          "1",
 			Name:        "foo-channel",
 			AppserverId: "1",
 		}
-		expected := marshallResponse(t, api.CreateResponse(channel))
-		mockCreateRequest := &pb_channel.CreateRequest{Name: channel.Name, AppserverId: channel.AppserverId}
-		mockCreateResponse := &pb_channel.CreateResponse{Channel: &pb_channel.Channel{
-			Id:          channel.ID,
-			Name:        channel.Name,
-			AppserverId: channel.AppserverId,
+		expected := marshallResponse(t, api.CreateResponse(c))
+		mockCreateRequest := &channel.CreateRequest{Name: c.Name, AppserverId: c.AppserverId}
+		mockCreateResponse := &channel.CreateResponse{Channel: &channel.Channel{
+			Id:          c.ID,
+			Name:        c.Name,
+			AppserverId: c.AppserverId,
 		}}
 		mockService := new(testutil.MockChannelService)
 		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockCreateResponse, nil)
@@ -51,7 +49,7 @@ func TestCreateChannel(t *testing.T) {
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		payload := marshallPayload(t, api.ChannelCreate{Name: channel.Name, AppserverId: channel.AppserverId})
+		payload := marshallPayload(t, types.ChannelCreate{Name: c.Name, AppserverId: c.AppserverId})
 		req, err := http.NewRequest("POST", apiUrl, payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
@@ -69,8 +67,8 @@ func TestCreateChannel(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Internal Server Error."))
 		mockService := new(testutil.MockChannelService)
-		mockCreateRequest := &pb_channel.CreateRequest{Name: "foo-channel", AppserverId: "1"}
-		mockResponse := &pb_channel.CreateResponse{}
+		mockCreateRequest := &channel.CreateRequest{Name: "foo-channel", AppserverId: "1"}
+		mockResponse := &channel.CreateResponse{}
 		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, errors.New("boom"))
 
 		mockClient := new(testutil.MockClient)
@@ -78,7 +76,7 @@ func TestCreateChannel(t *testing.T) {
 		testutil.MockGrpcClient(t, mockClient)
 
 		// Prepare the HTTP request
-		payload := marshallPayload(t, api.ChannelCreate{Name: "foo-channel", AppserverId: "1"})
+		payload := marshallPayload(t, types.ChannelCreate{Name: "foo-channel", AppserverId: "1"})
 		req, err := http.NewRequest("POST", apiUrl, payload)
 		require.NoError(t, err)
 		req = addContextHeaders(req)
@@ -96,8 +94,8 @@ func TestCreateChannel(t *testing.T) {
 		// ARRANGE
 		expected := marshallResponse(t, api.CreateErrorResponse("Invalid attributes provided."))
 		mockService := new(testutil.MockChannelService)
-		mockCreateRequest := &pb_channel.CreateRequest{Name: "foo-channel", AppserverId: "1"}
-		mockResponse := &pb_channel.CreateResponse{}
+		mockCreateRequest := &channel.CreateRequest{Name: "foo-channel", AppserverId: "1"}
+		mockResponse := &channel.CreateResponse{}
 		mockService.On("Create", mock.Anything, mockCreateRequest).Return(mockResponse, nil)
 
 		mockClient := new(testutil.MockClient)
@@ -120,105 +118,6 @@ func TestCreateChannel(t *testing.T) {
 	})
 }
 
-func TestListChannelsHandler(t *testing.T) {
-	log.SetOutput(new(strings.Builder))
-
-	params := url.Values{}
-	appserverId := "1"
-	params.Add("appserver_id", appserverId)
-	urlWithParams := apiUrl + "?" + params.Encode()
-
-	r := chi.NewRouter()
-	r.Get(apiUrl, api.ListChannelsHandler)
-	ts := httptest.NewServer(r)
-	defer ts.Close()
-
-	t.Run("Success:successfully_returns_channels", func(t *testing.T) {
-		// ARRANGE
-		channels := []api.Channel{
-			{ID: "1", Name: "bar", AppserverId: appserverId},
-			{ID: "2", Name: "bar", AppserverId: appserverId},
-		}
-		expected := marshallResponse(t, api.CreateResponse(channels))
-		mockRequest := &pb_channel.ListServerChannelsRequest{AppserverId: appserverId}
-		mockResponse := &pb_channel.ListServerChannelsResponse{}
-		mockResponse.Channels = []*pb_channel.Channel{
-			{Id: channels[0].ID, Name: channels[0].Name, AppserverId: channels[0].AppserverId},
-			{Id: channels[1].ID, Name: channels[1].Name, AppserverId: channels[1].AppserverId},
-		}
-
-		mockService := new(testutil.MockChannelService)
-		mockService.On("ListServerChannels", mock.Anything, mockRequest).Return(mockResponse, nil)
-		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
-		testutil.MockGrpcClient(t, mockClient)
-
-		req, err := http.NewRequest("GET", urlWithParams, nil)
-		require.NoError(t, err)
-		rr := httptest.NewRecorder()
-		req = addContextHeaders(req)
-
-		// ACT
-		r.ServeHTTP(rr, req)
-
-		//  ASSERT
-		assert.Equal(t, http.StatusOK, rr.Code)
-		assert.JSONEq(t, expected, rr.Body.String())
-	})
-
-	t.Run("Error:on_error_returns_error", func(t *testing.T) {
-		// ARRANGE
-		expected := marshallResponse(t, api.CreateErrorResponse("Bad request"))
-		mockService := new(testutil.MockChannelService)
-		mockRequest := &pb_channel.ListServerChannelsRequest{AppserverId: appserverId}
-		mockResponse := &pb_channel.ListServerChannelsResponse{}
-		mockService.On("ListServerChannels", mock.Anything, mockRequest).Return(
-			mockResponse, status.Error(codes.InvalidArgument, "Bad request"))
-
-		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
-		testutil.MockGrpcClient(t, mockClient)
-
-		req, err := http.NewRequest("GET", urlWithParams, nil)
-		require.NoError(t, err)
-		rr := httptest.NewRecorder()
-		req = addContextHeaders(req)
-
-		// ACT
-		r.ServeHTTP(rr, req)
-
-		//  ASSERT
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		assert.JSONEq(t, expected, rr.Body.String())
-	})
-
-	t.Run("Error:errors_when_no_appserver_id_provided", func(t *testing.T) {
-		// ARRANGE
-		expected := marshallResponse(t, api.CreateErrorResponse("Appserver ID is required"))
-		mockService := new(testutil.MockChannelService)
-		mockRequest := &pb_channel.ListServerChannelsRequest{AppserverId: appserverId}
-		mockResponse := &pb_channel.ListServerChannelsResponse{}
-		mockService.On("ListServerChannels", mock.Anything, mockRequest).Return(
-			mockResponse, status.Error(codes.InvalidArgument, "Bad request"))
-
-		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
-		testutil.MockGrpcClient(t, mockClient)
-
-		req, err := http.NewRequest("GET", apiUrl, nil)
-		require.NoError(t, err)
-		rr := httptest.NewRecorder()
-		req = addContextHeaders(req)
-
-		// ACT
-		r.ServeHTTP(rr, req)
-
-		//  ASSERT
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		assert.JSONEq(t, expected, rr.Body.String())
-	})
-}
-
 func TestDeleteChannel(t *testing.T) {
 	log.SetOutput(new(strings.Builder))
 
@@ -230,8 +129,8 @@ func TestDeleteChannel(t *testing.T) {
 	t.Run("Success:is_successful", func(t *testing.T) {
 		// ARRANGE
 		cId := "1"
-		mockDeleteRequest := &pb_channel.DeleteRequest{Id: cId}
-		mockDeleteResponse := &pb_channel.DeleteResponse{}
+		mockDeleteRequest := &channel.DeleteRequest{Id: cId}
+		mockDeleteResponse := &channel.DeleteResponse{}
 
 		mockService := new(testutil.MockChannelService)
 		mockService.On(
@@ -260,8 +159,8 @@ func TestDeleteChannel(t *testing.T) {
 		// ARRANGE
 		cId := "1"
 		mockService := new(testutil.MockChannelService)
-		mockDeleteRequest := &pb_channel.DeleteRequest{Id: cId}
-		mockResponse := &pb_channel.DeleteResponse{}
+		mockDeleteRequest := &channel.DeleteRequest{Id: cId}
+		mockResponse := &channel.DeleteResponse{}
 		mockService.On("Delete", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
 		mockClient := new(testutil.MockClient)
 		mockClient.On("GetChannelClient").Return(mockService)

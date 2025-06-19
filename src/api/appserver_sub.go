@@ -4,22 +4,13 @@ import (
 	"net/http"
 
 	"mistapi/src/auth"
-	pb_appserver_sub "mistapi/src/protos/v1/appserver_sub"
+	"mistapi/src/protos/v1/appserver_sub"
 	"mistapi/src/service"
+	"mistapi/src/types"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
-
-type AppserverSub struct {
-	ID          string `json:"id"`
-	AppuserId   string `json:"appuser_id"`
-	AppserverId string `json:"appserver_id"`
-}
-
-type AppserverSubCreate struct {
-	AppserverId string `json:"appserver_id"`
-}
 
 func appserverSubRouter() http.Handler {
 	r := chi.NewRouter()
@@ -36,11 +27,11 @@ func appserverSubRouter() http.Handler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        appserver  body      AppserverSubCreate  true  "AppserverSubCreate"
-// @Success      201 {object} AppserverSub
+// @Param        appserver  body      types.AppserverSubCreate  true  "AppserverSubCreate"
+// @Success      201 {object} types.AppserverSub
 // @Router       /api/v1/appserver-subs [post]
 func AppserverSubCreateHandler(w http.ResponseWriter, r *http.Request) {
-	var sub AppserverSubCreate
+	var sub types.AppserverSubCreate
 
 	err := DecodeRequestBody(w, r, &sub)
 	if err != nil {
@@ -53,7 +44,7 @@ func AppserverSubCreateHandler(w http.ResponseWriter, r *http.Request) {
 
 	c := service.NewGrpcClient()
 	response, err := c.GetAppserverSubClient().Create(
-		ctx, &pb_appserver_sub.CreateRequest{
+		ctx, &appserver_sub.CreateRequest{
 			AppserverId: sub.AppserverId,
 		},
 	)
@@ -63,7 +54,7 @@ func AppserverSubCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.Status(r, http.StatusCreated)
-	render.JSON(w, r, CreateResponse(&AppserverSub{
+	render.JSON(w, r, CreateResponse(&types.AppserverSub{
 		ID:          response.AppserverSub.Id,
 		AppserverId: response.AppserverSub.AppserverId,
 	}))
@@ -88,7 +79,7 @@ func AppserverSubDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	c := service.NewGrpcClient()
 	_, err := c.GetAppserverSubClient().Delete(
-		ctx, &pb_appserver_sub.DeleteRequest{
+		ctx, &appserver_sub.DeleteRequest{
 			Id: sId,
 		},
 	)

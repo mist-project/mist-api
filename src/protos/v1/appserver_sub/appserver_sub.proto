@@ -3,6 +3,7 @@ syntax = "proto3";
 package v1.appserver_sub;
 option go_package = "mistapi/src/protos/v1/appserver_sub";
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
@@ -37,14 +38,21 @@ message AppuserAndSub {
 }
 
 // ----- REQUEST/RESPONSE -----
-message CreateRequest { string appserver_id = 1; }
+message CreateRequest {
+  string appserver_id = 1 [ (buf.validate.field).string.uuid = true ];
+}
 message CreateResponse { AppserverSub appserver_sub = 1; }
 
 message ListUserServerSubsRequest {}
 message ListUserServerSubsResponse { repeated AppserverAndSub appservers = 1; }
 
-message ListAppserverUserSubsRequest { string appserver_id = 1; }
+message ListAppserverUserSubsRequest {
+  string appserver_id = 1 [ (buf.validate.field).string.uuid = true ];
+}
 message ListAppserverUserSubsResponse { repeated AppuserAndSub appusers = 1; }
 
-message DeleteRequest { string id = 1; }
+message DeleteRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string appserver_id = 2 [ (buf.validate.field).string.uuid = true ];
+}
 message DeleteResponse {}

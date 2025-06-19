@@ -31,7 +31,7 @@ compile-protos cp:
 
 # ----- TESTS -----
 run-tests t:
-	go test --cover ./src/...
+	go test --cover ./src/... | grep -v 'src/protos'
 
 test-auth:
 	@echo -----------------------------------------

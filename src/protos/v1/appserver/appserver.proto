@@ -3,13 +3,14 @@ syntax = "proto3";
 package v1.appserver;
 option go_package = "mistapi/src/protos/v1/appserver";
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 service AppserverService {
   rpc Create(CreateRequest) returns (CreateResponse) {}
   rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
-  rpc List(ListRequest) returns (ListResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {} // TODO: maybe delete this
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
 }
 
@@ -23,14 +24,23 @@ message Appserver {
 }
 
 // ----- REQUEST/RESPONSE -----
-message CreateRequest { string name = 1; }
+message CreateRequest {
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 64
+  ];
+}
 message CreateResponse { Appserver appserver = 1; }
 
-message GetByIdRequest { string id = 1; }
+message GetByIdRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+}
 message GetByIdResponse { Appserver appserver = 1; }
 
 message ListRequest { google.protobuf.StringValue name = 1; }
 message ListResponse { repeated Appserver appservers = 1; }
 
-message DeleteRequest { string id = 1; }
+message DeleteRequest {
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+}
 message DeleteResponse {}

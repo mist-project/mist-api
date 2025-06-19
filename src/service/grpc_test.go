@@ -69,20 +69,6 @@ func TestGetAppserverRoleSubClient(t *testing.T) {
 	assert.NotNil(t, serverRoleSubClient)
 }
 
-func TestGetAppserverPermissionClient(t *testing.T) {
-	// ARRANGE
-	mockConn := new(grpc.ClientConn)
-	client := service.Client{
-		Conn: mockConn,
-	}
-
-	// ACT
-	serverPermissionClient := client.GetAppserverPermissionClient()
-
-	// ASSERT
-	assert.NotNil(t, serverPermissionClient)
-}
-
 func TestGetAppuserClient(t *testing.T) {
 	// ARRANGE
 	mockConn := new(grpc.ClientConn)

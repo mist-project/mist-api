@@ -3,6 +3,7 @@ syntax = "proto3";
 package v1.appuser;
 option go_package = "mistapi/src/protos/v1/appuser";
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
@@ -28,7 +29,11 @@ message Appuser {
 
 // ----- REQUEST/RESPONSE -----
 message CreateRequest {
-  string id = 1;
-  string username = 2;
+  string id = 1 [ (buf.validate.field).string.uuid = true ];
+  string username = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 255
+  ];
 }
+
 message CreateResponse {}

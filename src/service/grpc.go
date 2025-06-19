@@ -12,25 +12,23 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	pb_appserver "mistapi/src/protos/v1/appserver"
-	pb_appserverpermission "mistapi/src/protos/v1/appserver_permission"
-	pb_appserver_role "mistapi/src/protos/v1/appserver_role"
-	pb_appserver_rolesub "mistapi/src/protos/v1/appserver_role_sub"
-	pb_appserver_sub "mistapi/src/protos/v1/appserver_sub"
-	pb_appuser "mistapi/src/protos/v1/appuser"
-	pb_channel "mistapi/src/protos/v1/channel"
-	pb_channelrole "mistapi/src/protos/v1/channel_role"
+	"mistapi/src/protos/v1/appserver"
+	"mistapi/src/protos/v1/appserver_role"
+	"mistapi/src/protos/v1/appserver_role_sub"
+	"mistapi/src/protos/v1/appserver_sub"
+	"mistapi/src/protos/v1/appuser"
+	"mistapi/src/protos/v1/channel"
+	"mistapi/src/protos/v1/channel_role"
 )
 
 type GrpcClient interface {
-	GetAppserverClient() pb_appserver.AppserverServiceClient
-	GetAppserverRoleClient() pb_appserver_role.AppserverRoleServiceClient
-	GetAppserverSubClient() pb_appserver_sub.AppserverSubServiceClient
-	GetAppserverRoleSubClient() pb_appserver_rolesub.AppserverRoleSubServiceClient
-	GetAppserverPermissionClient() pb_appserverpermission.AppserverPermissionServiceClient
-	GetAppuserClient() pb_appuser.AppuserServiceClient
-	GetChannelClient() pb_channel.ChannelServiceClient
-	GetChannelRoleClient() pb_channelrole.ChannelRoleServiceClient
+	GetAppserverClient() appserver.AppserverServiceClient
+	GetAppserverRoleClient() appserver_role.AppserverRoleServiceClient
+	GetAppserverSubClient() appserver_sub.AppserverSubServiceClient
+	GetAppserverRoleSubClient() appserver_role_sub.AppserverRoleSubServiceClient
+	GetAppuserClient() appuser.AppuserServiceClient
+	GetChannelClient() channel.ChannelServiceClient
+	GetChannelRoleClient() channel_role.ChannelRoleServiceClient
 }
 
 type Client struct {
@@ -42,36 +40,32 @@ var (
 	connOnce sync.Once
 )
 
-func (c Client) GetAppserverClient() pb_appserver.AppserverServiceClient {
-	return pb_appserver.NewAppserverServiceClient(c.Conn)
+func (c Client) GetAppserverClient() appserver.AppserverServiceClient {
+	return appserver.NewAppserverServiceClient(c.Conn)
 }
 
-func (c Client) GetAppserverRoleClient() pb_appserver_role.AppserverRoleServiceClient {
-	return pb_appserver_role.NewAppserverRoleServiceClient(c.Conn)
+func (c Client) GetAppserverRoleClient() appserver_role.AppserverRoleServiceClient {
+	return appserver_role.NewAppserverRoleServiceClient(c.Conn)
 }
 
-func (c Client) GetAppserverSubClient() pb_appserver_sub.AppserverSubServiceClient {
-	return pb_appserver_sub.NewAppserverSubServiceClient(c.Conn)
+func (c Client) GetAppserverSubClient() appserver_sub.AppserverSubServiceClient {
+	return appserver_sub.NewAppserverSubServiceClient(c.Conn)
 }
 
-func (c Client) GetAppserverRoleSubClient() pb_appserver_rolesub.AppserverRoleSubServiceClient {
-	return pb_appserver_rolesub.NewAppserverRoleSubServiceClient(c.Conn)
+func (c Client) GetAppserverRoleSubClient() appserver_role_sub.AppserverRoleSubServiceClient {
+	return appserver_role_sub.NewAppserverRoleSubServiceClient(c.Conn)
 }
 
-func (c Client) GetAppserverPermissionClient() pb_appserverpermission.AppserverPermissionServiceClient {
-	return pb_appserverpermission.NewAppserverPermissionServiceClient(c.Conn)
+func (c Client) GetAppuserClient() appuser.AppuserServiceClient {
+	return appuser.NewAppuserServiceClient(c.Conn)
 }
 
-func (c Client) GetAppuserClient() pb_appuser.AppuserServiceClient {
-	return pb_appuser.NewAppuserServiceClient(c.Conn)
+func (c Client) GetChannelClient() channel.ChannelServiceClient {
+	return channel.NewChannelServiceClient(c.Conn)
 }
 
-func (c Client) GetChannelClient() pb_channel.ChannelServiceClient {
-	return pb_channel.NewChannelServiceClient(c.Conn)
-}
-
-func (c Client) GetChannelRoleClient() pb_channelrole.ChannelRoleServiceClient {
-	return pb_channelrole.NewChannelRoleServiceClient(c.Conn)
+func (c Client) GetChannelRoleClient() channel_role.ChannelRoleServiceClient {
+	return channel_role.NewChannelRoleServiceClient(c.Conn)
 }
 
 func SetupGrpcHeaders(jwtT string) (context.Context, context.CancelFunc) {
