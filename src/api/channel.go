@@ -15,8 +15,7 @@ import (
 func channelRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Post("/", ChannelCreateHandler)       // create a channel
-	r.Delete("/{id}", ChannelDeleteHandler) // delete a channel
+	r.Post("/", ChannelCreateHandler) // create a channel
 	return r
 }
 
@@ -63,36 +62,4 @@ func ChannelCreateHandler(w http.ResponseWriter, r *http.Request) {
 		Name:        response.Channel.Name,
 		AppserverId: response.Channel.AppserverId,
 	}))
-}
-
-// ChannelDeleteHandler godoc
-// @Summary      Delete channel by id
-// @Description  Delete channel by id
-// @Tags         channel
-// @Accept       json
-// @Produce      json
-// @Param        id   path      string  true  "Channel ID"
-// @Security     BearerAuth
-// @Success      204
-// @Router       /api/v1/channels/{id} [delete]
-func ChannelDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	cId := chi.URLParam(r, "id")
-
-	authT, _ := auth.GetAuthotizationToken(r)
-	ctx, cancel := service.SetupGrpcHeaders(authT.Token)
-	defer cancel()
-
-	c := service.NewGrpcClient()
-	_, err := c.GetChannelClient().Delete(
-		ctx, &channel.DeleteRequest{
-			Id: cId,
-		},
-	)
-
-	if err != nil {
-		HandleGrpcError(w, r, err)
-		return
-	}
-
-	render.NoContent(w, r)
 }

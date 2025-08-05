@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -23,10 +24,18 @@ func StartService() {
 
 	r := SetupRouter()
 
+	// Apply CORS
+	handler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"}, // TODO: fix the origin for the app
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true, // if sending cookies/auth headers
+	}).Handler(r)
+
 	addr := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
 	// TODO: use better logging solution
 	log.Printf("Server running at %s\n", addr)
-	http.ListenAndServe(addr, r)
+	http.ListenAndServe(addr, handler)
 }
 
 func SetupRouter() *chi.Mux {

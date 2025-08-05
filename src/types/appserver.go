@@ -7,9 +7,11 @@ type Appserver struct {
 }
 
 type AppserverDetail struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	IsOwner bool   `json:"is_owner"`
+	ID       string          `json:"id"`
+	Name     string          `json:"name"`
+	IsOwner  bool            `json:"is_owner"`
+	Roles    []AppserverRole `json:"roles"`
+	Channels []Channel       `json:"channels"`
 }
 
 type AppserverCreate struct {

@@ -30,7 +30,8 @@ func appserverRouter() http.Handler {
 	r.Get("/{id}/roles", AppserverListRolesHandler)                            // get all appserver roles
 	r.Get("/{id}/role-subs", AppserverListRoleSubHandler)                      // get all appservers' role subscriptions
 
-	r.Delete("/{id}", AppserverDeleteHandler) // delete an appserver
+	r.Delete("/{id}", AppserverDeleteHandler)              // delete an appserver
+	r.Delete("/{id}/channels/{cid}", ChannelDeleteHandler) // delete a channel
 
 	return r
 }
@@ -141,10 +142,55 @@ func AppserverDetailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rolesResponse, err := c.GetAppserverRoleClient().ListServerRoles(
+		ctx, &appserver_role.ListServerRolesRequest{
+			AppserverId: sId,
+		},
+	)
+
+	if err != nil {
+		HandleGrpcError(w, r, err)
+		return
+	}
+
+	roles := make([]types.AppserverRole, 0, len(rolesResponse.AppserverRoles))
+
+	for _, role := range rolesResponse.AppserverRoles {
+		roles = append(roles, types.AppserverRole{
+			ID:          role.Id,
+			Name:        role.Name,
+			AppserverId: role.AppserverId,
+		})
+	}
+
+	channelResponse, err := c.GetChannelClient().ListServerChannels(
+		ctx, &channel.ListServerChannelsRequest{
+			AppserverId: sId,
+		},
+	)
+
+	if err != nil {
+		// Handle gRPC error and return it as a response
+		HandleGrpcError(w, r, err)
+		return
+	}
+
+	channels := make([]types.Channel, 0, len(channelResponse.Channels))
+
+	for _, c := range channelResponse.Channels {
+		channels = append(channels, types.Channel{
+			ID:          c.Id,
+			Name:        c.Name,
+			AppserverId: c.AppserverId,
+		})
+	}
+
 	render.JSON(w, r, CreateResponse(&types.AppserverDetail{
-		ID:      response.Appserver.Id,
-		Name:    response.Appserver.Name,
-		IsOwner: response.Appserver.IsOwner,
+		ID:       response.Appserver.Id,
+		Name:     response.Appserver.Name,
+		IsOwner:  response.Appserver.IsOwner,
+		Roles:    roles,
+		Channels: channels,
 	}))
 }
 
@@ -217,6 +263,7 @@ func AppserverListRolesHandler(w http.ResponseWriter, r *http.Request) {
 		HandleGrpcError(w, r, err)
 		return
 	}
+
 	roles := make([]types.AppserverRole, 0, len(response.AppserverRoles))
 
 	for _, role := range response.AppserverRoles {
@@ -397,4 +444,38 @@ func AppserverChannelRolesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, CreateResponse(response))
+}
+
+// ChannelDeleteHandler godoc
+// @Summary      Delete a server channel
+// @Description  Delete a server channel by its ID
+// @Tags         channel
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Channel ID"
+// @Security     BearerAuth
+// @Success      204
+// @Router       /api/v1/appservers/{id}/channels/{cid} [delete]
+func ChannelDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	sId := chi.URLParam(r, "id")
+	cId := chi.URLParam(r, "cid")
+
+	authT, _ := auth.GetAuthotizationToken(r)
+	ctx, cancel := service.SetupGrpcHeaders(authT.Token)
+	defer cancel()
+
+	c := service.NewGrpcClient()
+	_, err := c.GetChannelClient().Delete(
+		ctx, &channel.DeleteRequest{
+			Id:          cId,
+			AppserverId: sId,
+		},
+	)
+
+	if err != nil {
+		HandleGrpcError(w, r, err)
+		return
+	}
+
+	render.NoContent(w, r)
 }

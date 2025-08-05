@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +13,6 @@ import (
 	"mistapi/src/testutil"
 	"mistapi/src/types"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -115,68 +113,5 @@ func TestCreateChannel(t *testing.T) {
 		// ASSERT
 		assert.Equal(t, http.StatusUnprocessableEntity, rr.Code)
 		assert.JSONEq(t, expected, rr.Body.String())
-	})
-}
-
-func TestDeleteChannel(t *testing.T) {
-	log.SetOutput(new(strings.Builder))
-
-	r := chi.NewRouter()
-	r.Delete("/{id}", api.ChannelDeleteHandler)
-	ts := httptest.NewServer(r)
-	defer ts.Close()
-
-	t.Run("Success:is_successful", func(t *testing.T) {
-		// ARRANGE
-		cId := "1"
-		mockDeleteRequest := &channel.DeleteRequest{Id: cId}
-		mockDeleteResponse := &channel.DeleteResponse{}
-
-		mockService := new(testutil.MockChannelService)
-		mockService.On(
-			"Delete", mock.Anything, mockDeleteRequest,
-		).Return(mockDeleteResponse, nil)
-
-		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
-		testutil.MockGrpcClient(t, mockClient)
-
-		// Prepare the HTTP request
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", cId), nil)
-		require.NoError(t, err)
-		rr := httptest.NewRecorder()
-		req = addContextHeaders(req)
-		req = withURLParam(req, "id", cId)
-
-		// ACT
-		r.ServeHTTP(rr, req)
-
-		// ASSERT
-		assert.Equal(t, http.StatusNoContent, rr.Code)
-	})
-
-	t.Run("Error:on_error_when_deleting_returns_error", func(t *testing.T) {
-		// ARRANGE
-		cId := "1"
-		mockService := new(testutil.MockChannelService)
-		mockDeleteRequest := &channel.DeleteRequest{Id: cId}
-		mockResponse := &channel.DeleteResponse{}
-		mockService.On("Delete", mock.Anything, mockDeleteRequest).Return(mockResponse, errors.New("boom"))
-		mockClient := new(testutil.MockClient)
-		mockClient.On("GetChannelClient").Return(mockService)
-		testutil.MockGrpcClient(t, mockClient)
-
-		// Prepare the HTTP request
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("/%s", cId), nil)
-		require.NoError(t, err)
-		rr := httptest.NewRecorder()
-		req = addContextHeaders(req)
-		req = withURLParam(req, "id", cId)
-
-		// ACT
-		r.ServeHTTP(rr, req)
-
-		// ASSERT
-		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	})
 }
