@@ -13,7 +13,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func StartService() {
@@ -32,10 +31,13 @@ func StartService() {
 		AllowCredentials: false, // if sending cookies/auth headers
 	}).Handler(r)
 
-	addr := fmt.Sprintf("192.168.0.21:%s", os.Getenv("APP_PORT"))
+	certFile := "/etc/ssl/cloudflare/mist-project.crt"
+	keyFile := "/etc/ssl/cloudflare/mist-project.key"
+
+	addr := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
 	// TODO: use better logging solution
 	log.Printf("Server running at %s\n", addr)
-	http.ListenAndServe(addr, handler)
+	http.ListenAndServeTLS(addr, certFile, keyFile, handler)
 }
 
 func SetupRouter() *chi.Mux {
@@ -60,8 +62,8 @@ func SetupRouter() *chi.Mux {
 	})
 
 	// TODO: change the localhost domain
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("https://192.168.0.21:%s/swagger/doc.json", os.Getenv("APP_PORT")))))
+	// r.Get("/swagger/*", httpSwagger.Handler(
+	// 	httpSwagger.URL(fmt.Sprintf("https://192.168.0.21:%s/swagger/doc.json", os.Getenv("APP_PORT")))))
 
 	return r
 }

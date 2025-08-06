@@ -38,6 +38,12 @@ steps:
     image: registry.mist-project.app/mist-shared/alpine-ci:latest
     environment:
       ANSIBLE_HOST_KEY_CHECKING: False
+      CERT_DOC_ID:
+        from_secret: MIST_PROJECT_CERT_DOC_ID
+      CERT_KEY_DOC_ID:
+        from_secret: MIST_PROJECT_KEY_DOC_ID
+      OP_SERVICE_ACCOUNT_TOKEN:
+        from_secret: OP_TOKEN
     commands:
       - source .tmpenvs
       - |
@@ -50,3 +56,6 @@ steps:
           --extra-vars "MIST_API_JWT_SECRET_KEY=$MIST_API_JWT_SECRET_KEY" \
           --extra-vars "MIST_API_JWT_AUDIENCE=$MIST_API_JWT_AUDIENCE" \
           --extra-vars "MIST_API_JWT_ISSUER=$MIST_API_JWT_ISSUER" \
+          --extra-vars "CERT_DOC_ID=$CERT_DOC_ID" \
+          --extra-vars "CERT_KEY_DOC_ID=$CERT_KEY_DOC_ID" \
+          --extra-vars "OP_SERVICE_ACCOUNT_TOKEN=$OP_SERVICE_ACCOUNT_TOKEN" \

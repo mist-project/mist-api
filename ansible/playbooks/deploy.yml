@@ -3,11 +3,61 @@
   gather_facts: false
   become: true
 
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ OP_SERVICE_ACCOUNT_TOKEN }}"
+
+  vars:
+    cert_local_path: "./mist-project.crt"
+    key_local_path: "./mist-project.key"
+    remote_certs_dir: "/etc/ssl/cloudflare"
+    remote_cert_path: "/etc/ssl/cloudflare/mist-project.crt"
+    remote_key_path: "/etc/ssl/cloudflare/mist-project.key"
+
   tasks:
     - name: Pull latest mist-api image
       community.docker.docker_image:
         name: registry.mist-project.app/mist-api:latest
         source: pull
+
+    - name: Fetch private key from 1Password
+      delegate_to: localhost
+      become: false
+      shell: op document get {{ CERT_DOC_ID }} --out-file {{ key_local_path }}
+      args:
+        creates: "{{ key_local_path }}"
+      no_log: false
+
+    - name: Fetch cert key from 1Password
+      delegate_to: localhost
+      become: false
+      shell: op document get {{ CERT_KEY_DOC_ID }} --out-file {{ cert_local_path }}
+      args:
+        creates: "{{ cert_local_path }}"
+      no_log: false
+
+    - name: Ensure remote cert directory exists
+      file:
+        path: "{{ remote_certs_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Deploy certificate to remote host
+      copy:
+        src: "{{ cert_local_path }}"
+        dest: "{{ remote_cert_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Deploy private key to remote host
+      copy:
+        src: "{{ key_local_path }}"
+        dest: "{{ remote_key_path }}"
+        owner: root
+        group: root
+        mode: "0600"
 
     - name: Run Docker container
       community.docker.docker_container:
@@ -25,3 +75,16 @@
           MIST_API_JWT_SECRET_KEY: "{{ MIST_API_JWT_SECRET_KEY }}"
           MIST_API_JWT_AUDIENCE: "{{ MIST_API_JWT_AUDIENCE }}"
           MIST_API_JWT_ISSUER: "{{ MIST_API_JWT_ISSUER }}"
+        volumes:
+          - "./certs/mist-project.crt:/etc/ssl/cloudflare/mist-project.crt:ro"
+          - "./certs/mist-project.key:/etc/ssl/cloudflare/mist-project.key:ro"
+
+    - name: Delete private key file
+      file:
+        path: "{{ key_local_path }}"
+        state: absent
+
+    - name: Delete cert key file
+      file:
+        path: "{{ cert_local_path }}"
+        state: absent
