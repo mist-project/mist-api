@@ -29,10 +29,10 @@ func StartService() {
 		AllowedOrigins:   []string{"http://localhost:5173"}, // TODO: fix the origin for the app
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
-		AllowCredentials: true, // if sending cookies/auth headers
+		AllowCredentials: false, // if sending cookies/auth headers
 	}).Handler(r)
 
-	addr := fmt.Sprintf(":%s", os.Getenv("APP_PORT"))
+	addr := fmt.Sprintf("192.168.0.21:%s", os.Getenv("APP_PORT"))
 	// TODO: use better logging solution
 	log.Printf("Server running at %s\n", addr)
 	http.ListenAndServe(addr, handler)
@@ -61,7 +61,7 @@ func SetupRouter() *chi.Mux {
 
 	// TODO: change the localhost domain
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", os.Getenv("APP_PORT")))))
+		httpSwagger.URL(fmt.Sprintf("https://192.168.0.21:%s/swagger/doc.json", os.Getenv("APP_PORT")))))
 
 	return r
 }
