@@ -12,8 +12,17 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Install swag CLI for Swagger docs generation
+RUN go install github.com/swaggo/swag/cmd/swag@v1.16.6
+
+# Copy only Go source files first (exclude docs and bin for caching)
 COPY ./src ./src
-RUN go build -o main ./src/main.go
+
+# Generate Swagger docs
+RUN swag init --dir src
+
+# Build binary into bin/ directory
+RUN mkdir -p bin && go build -o bin/mistapi src/main.go
 
 # -------- Final stage --------
 FROM gcr.io/distroless/static:nonroot
@@ -24,8 +33,8 @@ EXPOSE ${APP_PORT}
 
 WORKDIR /app
 
-COPY --from=builder /app/main .
+COPY --from=builder /app/bin/mistapi .
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app/main"]
+ENTRYPOINT ["/app/mistapi"]

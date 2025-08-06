@@ -3,8 +3,8 @@ when:
 
 steps:
   - name: Fetch and Initialize Credentials
-    when:
-      - evaluate: 'DEPLOY_DEV == "true"'
+    # when:
+    # - evaluate: 'DEPLOY_DEV == "true"'
     image: registry.mist-project.app/mist-shared/alpine-ci:latest
     environment:
       OP_SERVICE_ACCOUNT_TOKEN:
@@ -19,8 +19,8 @@ steps:
       - ./helpers/fetch_creds_op.sh
 
   - name: Build Image and Push to Registry
-    when:
-      - evaluate: 'MANUAL_DEPLOY == "true"'
+    # when:
+    # - evaluate: 'MANUAL_DEPLOY == "true"'
     image: woodpeckerci/plugin-kaniko
     privileged: true
 
@@ -30,11 +30,11 @@ steps:
       tags:
         - latest # TODO: Add version tag or commit sha for incremental versions
       registry: registry.mist-project.app
-      log-level: debug
+      log-level: info
 
   - name: Pull latest image in tenant
-    when:
-      - evaluate: 'MANUAL_DEPLOY == "true"'
+    # when:
+    # - evaluate: 'MANUAL_DEPLOY == "true"'
     image: registry.mist-project.app/mist-shared/alpine-ci:latest
     environment:
       ANSIBLE_HOST_KEY_CHECKING: False
