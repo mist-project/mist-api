@@ -1,0 +1,52 @@
+when:
+  - event: manual
+
+steps:
+  - name: Fetch and Initialize Credentials
+    when:
+      - evaluate: 'DEPLOY_DEV == "true"'
+    image: registry.mist-project.app/mist-shared/alpine-ci:latest
+    environment:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        from_secret: OP_TOKEN
+      OP_VAULT:
+        from_secret: OP_VAULT
+      TENANT_ACCOUNT_ID: "4wccsugzybkttewdtm2zujm5gu"
+      SERVICE_ACCOUNT_ID: "vubwwy5kbslweoq4dyozitukxa"
+
+    commands:
+      - chmod +x helpers/fetch_creds_op.sh
+      - ./helpers/fetch_creds_op.sh
+
+  - name: Build Image and Push to Registry
+    when:
+      - evaluate: 'MANUAL_DEPLOY == "true"'
+    image: woodpeckerci/plugin-kaniko
+    privileged: true
+
+    settings:
+      repo: mist-api
+      dockerfile: Dockerfile
+      tags:
+        - latest # TODO: Add version tag or commit sha for incremental versions
+      registry: registry.mist-project.app
+      log-level: debug
+
+  - name: Pull latest image in tenant
+    when:
+      - evaluate: 'MANUAL_DEPLOY == "true"'
+    image: registry.mist-project.app/mist-shared/alpine-ci:latest
+    environment:
+      ANSIBLE_HOST_KEY_CHECKING: False
+    commands:
+      - source .tmpenvs
+      - |
+        ansible-playbook -i ansible/inventory/hosts.ini \
+          ansible/playbooks/deploy.yml \
+          --extra-vars "ansible_ssh_private_key_file=key.pem" \
+          --extra-vars "ansible_user=$TENANT_USERNAME" \
+          --extra-vars "APP_PORT=$APP_PORT" \
+          --extra-vars "MIST_BACKEND_APP_URL=$MIST_BACKEND_APP_URL" \
+          --extra-vars "MIST_API_JWT_SECRET_KEY=$MIST_API_JWT_SECRET_KEY" \
+          --extra-vars "MIST_API_JWT_AUDIENCE=$MIST_API_JWT_AUDIENCE" \
+          --extra-vars "MIST_API_JWT_ISSUER=$MIST_API_JWT_ISSUER" \

@@ -1,0 +1,24 @@
+services:
+  mist-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_PORT: "${APP_PORT}"
+
+        MIST_BACKEND_APP_URL: "$MIST_BACKEND_APP_URL"
+
+        MIST_API_JWT_SECRET_KEY: "$MIST_API_JWT_SECRET_KEY"
+        MIST_API_JWT_AUDIENCE: "$MIST_API_JWT_AUDIENCE"
+        MIST_API_JWT_ISSUER: "$MIST_API_JWT_ISSUER"
+
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    environment:
+      APP_PORT: "${APP_PORT}"
+
+      MIST_BACKEND_APP_URL: "$MIST_BACKEND_APP_URL"
+
+      MIST_API_JWT_SECRET_KEY: "$MIST_API_JWT_SECRET_KEY"
+      MIST_API_JWT_AUDIENCE: "$MIST_API_JWT_AUDIENCE"
+      MIST_API_JWT_ISSUER: "$MIST_API_JWT_ISSUER"

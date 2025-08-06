@@ -1,0 +1,27 @@
+- name: Build and deploy mist-api Docker container
+  hosts: mist-service
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Pull latest mist-api image
+      community.docker.docker_image:
+        name: registry.mist-project.app/mist-api:latest
+        source: pull
+
+    - name: Run Docker container
+      community.docker.docker_container:
+        name: mist_api
+        image: registry.mist-project.app/mist-api:latest
+        state: started
+        ports:
+          - "4003:4003"
+        restart_policy: always # container restarts on failure
+        env:
+          APP_PORT: "{{ APP_PORT }}"
+
+          MIST_BACKEND_APP_URL: "{{ MIST_BACKEND_APP_URL }}"
+
+          MIST_API_JWT_SECRET_KEY: "{{ MIST_API_JWT_SECRET_KEY }}"
+          MIST_API_JWT_AUDIENCE: "{{ MIST_API_JWT_AUDIENCE }}"
+          MIST_API_JWT_ISSUER: "{{ MIST_API_JWT_ISSUER }}"
