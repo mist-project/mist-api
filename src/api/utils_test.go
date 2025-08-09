@@ -32,8 +32,8 @@ type CreateTokenParams struct {
 func addContextHeaders(req *http.Request) *http.Request {
 	claims := &auth.CustomJWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:   os.Getenv("MIST_PY_API_JWT_ISSUER"),
-			Audience: []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
+			Issuer:   os.Getenv("MIST_API_JWT_ISSUER"),
+			Audience: []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
 
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

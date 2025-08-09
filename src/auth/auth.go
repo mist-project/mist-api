@@ -82,7 +82,7 @@ func verifyJWT(tokenStr string) (*CustomJWTClaims, error) {
 		// 	return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		// }
 		// Return the secret key to validate the token's signature
-		return []byte(os.Getenv("MIST_PY_API_JWT_SECRET_KEY")), nil
+		return []byte(os.Getenv("MIST_API_JWT_SECRET_KEY")), nil
 	})
 
 	if err != nil {
@@ -108,7 +108,7 @@ func verifyJWTTokenClaims(token *jwt.Token) (*CustomJWTClaims, error) {
 
 	// If "aud" is an array of strings, cast each element to string
 	for _, aud := range auds {
-		if aud == os.Getenv("MIST_PY_API_JWT_AUDIENCE") {
+		if aud == os.Getenv("MIST_API_JWT_AUDIENCE") {
 			validAudience = true
 			break
 		}
@@ -119,7 +119,7 @@ func verifyJWTTokenClaims(token *jwt.Token) (*CustomJWTClaims, error) {
 	}
 
 	// Validate the issuer (iss) claim
-	if claims.Issuer != os.Getenv("MIST_PY_API_JWT_ISSUER") {
+	if claims.Issuer != os.Getenv("MIST_API_JWT_ISSUER") {
 		return nil, fmt.Errorf("invalid issuer claim")
 	}
 

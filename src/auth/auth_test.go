@@ -30,9 +30,9 @@ func TestAuthenticateMiddleware(t *testing.T) {
 		{
 			name: "Success:valid_token_is_successful",
 			authHeader: bearerToken(createJwtToken(t, &CreateTokenParams{
-				iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
-				aud:       []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
-				secretKey: os.Getenv("MIST_PY_API_JWT_SECRET_KEY"),
+				iss:       os.Getenv("MIST_API_JWT_ISSUER"),
+				aud:       []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
+				secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 			})),
 			expectedStatus: http.StatusOK,
 		},
@@ -74,9 +74,9 @@ func TestAuthorizeToken(t *testing.T) {
 	t.Run("Success:valid_token_is_successful", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
-			iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
-			aud:       []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
-			secretKey: os.Getenv("MIST_PY_API_JWT_SECRET_KEY"),
+			iss:       os.Getenv("MIST_API_JWT_ISSUER"),
+			aud:       []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
+			secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 		})
 
 		// ACT
@@ -90,9 +90,9 @@ func TestAuthorizeToken(t *testing.T) {
 	t.Run("Error:token_with_invalid_audience_errors", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
-			iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
+			iss:       os.Getenv("MIST_API_JWT_ISSUER"),
 			aud:       []string{"invalid-audience"},
-			secretKey: os.Getenv("MIST_PY_API_JWT_SECRET_KEY"),
+			secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 		})
 
 		// ACT
@@ -107,8 +107,8 @@ func TestAuthorizeToken(t *testing.T) {
 	t.Run("Error:token_with_invalid_issuer_errors", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
-			aud:       []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
-			secretKey: os.Getenv("MIST_PY_API_JWT_SECRET_KEY"),
+			aud:       []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
+			secretKey: os.Getenv("MIST_API_JWT_SECRET_KEY"),
 		})
 
 		// ACT
@@ -123,8 +123,8 @@ func TestAuthorizeToken(t *testing.T) {
 	t.Run("Error:token_with_invalid_secret_key_errors", func(t *testing.T) {
 		// ARRANGE
 		token := createJwtToken(t, &CreateTokenParams{
-			iss:       os.Getenv("MIST_PY_API_JWT_ISSUER"),
-			aud:       []string{os.Getenv("MIST_PY_API_JWT_AUDIENCE")},
+			iss:       os.Getenv("MIST_API_JWT_ISSUER"),
+			aud:       []string{os.Getenv("MIST_API_JWT_AUDIENCE")},
 			secretKey: "wrong-secret-key",
 		})
 
@@ -192,12 +192,12 @@ func TestAuthorizeToken(t *testing.T) {
 	t.Run("Error:token_with_invalid_claims_format_for_audience_errors", func(t *testing.T) {
 		// ARRANGE
 		claims := &jwt.RegisteredClaims{
-			Issuer:    os.Getenv("MIST_PY_API_JWT_ISSUER"),
+			Issuer:    os.Getenv("MIST_API_JWT_ISSUER"),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenStr, err := token.SignedString([]byte(os.Getenv("MIST_PY_API_JWT_SECRET_KEY")))
+		tokenStr, err := token.SignedString([]byte(os.Getenv("MIST_API_JWT_SECRET_KEY")))
 		assert.Nil(t, err)
 
 		// ACT

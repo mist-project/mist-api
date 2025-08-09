@@ -64,6 +64,7 @@
         name: mist_api
         image: registry.mist-project.app/mist-api:latest
         state: started
+        pull: true
         ports:
           - "4003:4003"
         restart_policy: always # container restarts on failure
